@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title1 %}
+    <h3>
+        Command
+    </h3>
+{% endblock title1 %}
+
+{% block javascript %}
+  <script>
+    $("#id_name").change(function () {
+      var form = $(this).closest("form");
+      $.ajax({
+        url: form.attr("data-validate-value-url"),
+        data: form.serialize(),
+        dataType: 'json',
+        success: function (data) {
+          if (data.is_taken) {
+            document.getElementById('btn_save').style.visibility = 'hidden';
+            alert(data.error_message);
+          } else {
+            document.getElementById('btn_save').style.visibility = 'visible';
+          }
+            
+        }
+      });
+    });
+
+    $(document).ready(function(){
+        $('#id_btn_command_learn').on('click', function () {
+            var form = $(this).closest("form");
+            $.ajax({
+                type: 'GET',
+                url: $("#id_btn_command_learn").attr("data-exec-url"),
+                dataType: 'json',
+                success: function (data) {
+                    if (data.result) {
+                        var txt_timer = document.getElementById("id_txt_timer");
+                        txt_timer.innerHTML = data.message;
+                        var count = 10;
+                        var timer = setInterval(function() {
+                            txt_timer.innerHTML = count + " Seconds remains..."
+
+                            count -= 1;
+                            if (count % 5 == 0) {
+                                $.ajax({
+                                    type: "GET",
+                                    url: "{% url 'read_cmd' dev=device %}",
+                                    dataType: 'json',
+                                    success: function (data) {
+                                        if (data.result) {
+                                            clearInterval(timer);
+                                            txt_timer.innerHTML = "The Code is copied~~~";
+                                            document.getElementById('id_code').value = data.message;
+                                        }
+                                    }
+                                });
+                            }
+
+                            if (count < 0) {
+                                clearInterval(timer);
+                                txt_timer.innerHTML = "Could not read learned command";
+                            }
+                        }, 1000);
+                    }
+                }
+            });
+
+        });
+    });
+
+  </script>
+{% endblock %}
+
+
+{% block content1 %}
+    <p>
+        <a href="{% url 'index' %}">Goto List</a>
+    </p>
+
+    {% if device %}
+        <button type="button" id="id_btn_command_learn" data-exec-url="{% url 'learn_cmd' dev=device %}">[{{ device}}] Learn Command</button>
+    {% endif %}
+    <div>
+        <form method="POST" data-validate-value-url="{% url 'validate_command_value' %}">
+            {% csrf_token %}
+            <table class="table">
+                {{ form.as_table }}
+            </table>
+            <button type="submit" id="btn_save">Save</button>
+
+            {% if 'edit' in request.build_absolute_uri %}
+                <a href="{% url 'cmd_del' name=form.name.value %}">
+                    <button type="button" class="btn btn-danger">Delete</button>
+                </a>
+            {% endif %}
+        </form>
+   </div>
+    <p id="id_txt_timer" style="overflow: hidden; text-overflow: ellipsis; width: 400px;"></p>
+
+{% endblock content1 %}

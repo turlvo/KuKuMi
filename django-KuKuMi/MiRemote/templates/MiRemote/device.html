@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title1 %}
+    <h3>
+        Device
+    </h3>
+{% endblock title1 %}
+
+
+{% block javascript %}
+  <script>
+    $("#id_name").change(function () {
+      var form = $(this).closest("form");
+      $.ajax({
+        url: form.attr("data-validate-value-url"),
+        data: form.serialize(),
+        dataType: 'json',
+        success: function (data) {
+          if (data.is_taken) {
+            document.getElementById('btn_save').style.visibility = 'hidden';
+            alert(data.error_message);
+          } else {
+            document.getElementById('btn_save').style.visibility = 'visible';
+          }
+
+        }
+      });
+
+    });
+
+  </script>
+{% endblock %}
+
+
+
+{% block content1 %}
+    <p>
+        <a href="{% url 'index' %}">Goto List</a>
+    </p>
+
+    <div>
+        <form method="POST">
+            {% csrf_token %}
+            <table class="table">
+                {{ form.as_table }}
+            </table>
+            <button type="submit">Save</button>
+
+            {% if 'edit' in request.build_absolute_uri %}
+                <a href="{% url 'dev_del' id=form.dev_ID.value %}">
+                    <button type="button" class="btn btn-danger">Delete</button>
+                </a>
+            {% endif %}
+
+        </form>
+   </div>
+
+{% endblock content1 %}

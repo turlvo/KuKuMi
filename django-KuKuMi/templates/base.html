@@ -1,0 +1,74 @@
+{% load staticfiles %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MiRemote</title>
+
+    <style>
+        table {
+            width:500px;
+            table-layout: fixed;
+        }
+        table, th, td {
+            border: 1px solid #000;
+            border-collapse: collapse;
+        }
+        th, td {
+            height:20px;
+            padding: 5px;
+        }
+        td {
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+        /* ... 넘침 해제
+        td {
+            white-space:normal;
+            word-wrap: break-word;
+        }*/
+        table tr:hover {
+            background: #f3f3f3;
+        }
+    </style>
+
+
+    <!--<link rel="stylesheet" href="{% static 'bootstrap/css/bootstrap.min.css' %}">-->
+</head>
+<body>
+    <div class="container">
+        <h2>
+            KuKu MiRemote Setting
+        </h2>
+    </div>
+
+    <div class="container">
+        {% block title1 %}
+        {% endblock title1 %}
+    </div>
+
+    <div class="container">
+        {% block content1 %}
+        {% endblock content1 %}
+    </div>
+
+    <br>
+    <br>
+
+     <div class="container">
+        {% block title2 %}
+        {% endblock title2 %}
+    </div>
+
+    <div class="container">
+        {% block content2 %}
+        {% endblock content2 %}
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
+    <script src="{% static 'js/app.js' %}"></script>
+    {% block javascript %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block title1 %}
+    <h3>
+        <!--<img src="{% static 'images/note.jpg' %}" style="width:50px" />-->
+        Device List
+    </h3>
+{% endblock title1 %}
+
+{% block content1 %}
+    <p>
+        <a href="{% url 'dev_create' %}">+ Create New Device</a>
+    </p>
+
+    <table class="table">
+        <tr><th>Device ID</th><th>Name</th><th>IP</th><th>Token</th></tr>
+        {% for item in devices %}
+            <tr>
+                <td>
+                    <a href="{% url 'dev_edit' id=item.dev_ID %}">{{ item.dev_ID }}</a>
+                </td>
+                <td>{{ item.name }}</td>
+                <td>{{ item.ip }}</td>
+                <td>{{ item.token }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+{% endblock content1 %}
+
+{% block title2 %}
+    <h3>
+        <!--<img src="{% static 'images/note.jpg' %}" style="width:50px" />-->
+        Command List
+    </h3>
+{% endblock title2 %}
+
+{% block content2 %}
+    <p>
+        <a href="{% url 'cmd_create' %}">+ Create New Command</a>
+    </p>
+
+    <table class="table" style="table-layout: fixed">
+        <tr><th>Name</th><th>Code</th></tr>
+        {% for item in commands %}
+            <tr>
+                <td width:"30" style="overflow: hidden;text-overflow:ellipsis;white-space:nowrap;">
+                    <a href="{% url 'cmd_edit' name=item.name %}">{{ item.name }}</a>
+                </td>
+                <td>{{ item.code }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+{% endblock content2 %}

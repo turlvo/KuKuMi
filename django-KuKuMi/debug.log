@@ -1,0 +1,77 @@
+(0.000) 
+            SELECT name, type FROM sqlite_master
+            WHERE type in ('table', 'view') AND NOT name='sqlite_sequence'
+            ORDER BY name; args=None
+(0.000) SELECT "django_migrations"."app", "django_migrations"."name" FROM "django_migrations"; args=()
+"POST /miremote/api/device/mi1/command/power-off HTTP/1.1" 405 41
+"POST /miremote/api/device/mi1/command/power-on HTTP/1.1" 405 41
+"POST /miremote/api/device/mi1/command/power-on HTTP/1.1" 405 41
+"GET /miremote HTTP/1.1" 301 0
+"GET /miremote HTTP/1.1" 301 0
+"GET /miremote HTTP/1.1" 301 0
+"GET /miremote HTTP/1.1" 301 0
+(0.001) SELECT "MiRemote_device"."id", "MiRemote_device"."dev_ID", "MiRemote_device"."name", "MiRemote_device"."ip", "MiRemote_device"."token" FROM "MiRemote_device"; args=()
+"GET /miremote/api/devices HTTP/1.1" 200 177
+(0.001) SELECT "MiRemote_command"."id", "MiRemote_command"."name", "MiRemote_command"."code" FROM "MiRemote_command"; args=()
+"GET /miremote/api/commands HTTP/1.1" 200 93
+(0.001) SELECT "MiRemote_device"."id", "MiRemote_device"."dev_ID", "MiRemote_device"."name", "MiRemote_device"."ip", "MiRemote_device"."token" FROM "MiRemote_device"; args=()
+"GET /miremote/api/devices HTTP/1.1" 200 177
+(0.001) SELECT "MiRemote_command"."id", "MiRemote_command"."name", "MiRemote_command"."code" FROM "MiRemote_command"; args=()
+"GET /miremote/api/commands HTTP/1.1" 200 93
+(0.000) SELECT "MiRemote_device"."id", "MiRemote_device"."dev_ID", "MiRemote_device"."name", "MiRemote_device"."ip", "MiRemote_device"."token" FROM "MiRemote_device"; args=()
+"GET /miremote/api/devices HTTP/1.1" 200 177
+(0.002) SELECT "MiRemote_command"."id", "MiRemote_command"."name", "MiRemote_command"."code" FROM "MiRemote_command"; args=()
+"GET /miremote/api/commands HTTP/1.1" 200 93
+(0.001) SELECT "MiRemote_device"."id", "MiRemote_device"."dev_ID", "MiRemote_device"."name", "MiRemote_device"."ip", "MiRemote_device"."token" FROM "MiRemote_device"; args=()
+"GET /miremote/api/devices HTTP/1.1" 200 177
+(0.001) SELECT "MiRemote_command"."id", "MiRemote_command"."name", "MiRemote_command"."code" FROM "MiRemote_command"; args=()
+"GET /miremote/api/commands HTTP/1.1" 200 93
+(0.001) SELECT "MiRemote_device"."id", "MiRemote_device"."dev_ID", "MiRemote_device"."name", "MiRemote_device"."ip", "MiRemote_device"."token" FROM "MiRemote_device"; args=()
+"GET /miremote/api/devices HTTP/1.1" 200 177
+(0.000) SELECT "MiRemote_command"."id", "MiRemote_command"."name", "MiRemote_command"."code" FROM "MiRemote_command"; args=()
+"GET /miremote/api/commands HTTP/1.1" 200 93
+(0.002) SELECT "MiRemote_device"."id", "MiRemote_device"."dev_ID", "MiRemote_device"."name", "MiRemote_device"."ip", "MiRemote_device"."token" FROM "MiRemote_device"; args=()
+"GET /miremote/api/devices HTTP/1.1" 200 177
+(0.001) SELECT "MiRemote_command"."id", "MiRemote_command"."name", "MiRemote_command"."code" FROM "MiRemote_command"; args=()
+"GET /miremote/api/commands HTTP/1.1" 200 93
+(0.000) SELECT "MiRemote_device"."id", "MiRemote_device"."dev_ID", "MiRemote_device"."name", "MiRemote_device"."ip", "MiRemote_device"."token" FROM "MiRemote_device"; args=()
+"GET /miremote/api/devices HTTP/1.1" 200 177
+(0.001) SELECT "MiRemote_command"."id", "MiRemote_command"."name", "MiRemote_command"."code" FROM "MiRemote_command"; args=()
+"GET /miremote/api/commands HTTP/1.1" 200 93
+(0.001) SELECT "MiRemote_device"."id", "MiRemote_device"."dev_ID", "MiRemote_device"."name", "MiRemote_device"."ip", "MiRemote_device"."token" FROM "MiRemote_device"; args=()
+"GET /miremote/api/devices HTTP/1.1" 200 177
+(0.001) SELECT "MiRemote_command"."id", "MiRemote_command"."name", "MiRemote_command"."code" FROM "MiRemote_command"; args=()
+"GET /miremote/api/commands HTTP/1.1" 200 93
+(0.000) SELECT "MiRemote_command"."id", "MiRemote_command"."name", "MiRemote_command"."code" FROM "MiRemote_command"; args=()
+"GET /miremote/api/commands HTTP/1.1" 200 93
+(0.001) SELECT "MiRemote_device"."id", "MiRemote_device"."dev_ID", "MiRemote_device"."name", "MiRemote_device"."ip", "MiRemote_device"."token" FROM "MiRemote_device"; args=()
+"GET /miremote/api/devices HTTP/1.1" 200 177
+(0.002) SELECT "MiRemote_device"."id", "MiRemote_device"."dev_ID", "MiRemote_device"."name", "MiRemote_device"."ip", "MiRemote_device"."token" FROM "MiRemote_device"; args=()
+"GET /miremote/api/devices HTTP/1.1" 200 177
+(0.001) SELECT "MiRemote_command"."id", "MiRemote_command"."name", "MiRemote_command"."code" FROM "MiRemote_command"; args=()
+"GET /miremote/api/commands HTTP/1.1" 200 93
+(0.001) SELECT "MiRemote_device"."id", "MiRemote_device"."dev_ID", "MiRemote_device"."name", "MiRemote_device"."ip", "MiRemote_device"."token" FROM "MiRemote_device"; args=()
+"GET /miremote/api/devices HTTP/1.1" 200 177
+(0.001) SELECT "MiRemote_command"."id", "MiRemote_command"."name", "MiRemote_command"."code" FROM "MiRemote_command"; args=()
+"GET /miremote/api/commands HTTP/1.1" 200 93
+(0.001) SELECT "MiRemote_device"."id", "MiRemote_device"."dev_ID", "MiRemote_device"."name", "MiRemote_device"."ip", "MiRemote_device"."token" FROM "MiRemote_device"; args=()
+"GET /miremote/api/devices HTTP/1.1" 200 177
+(0.002) SELECT "MiRemote_command"."id", "MiRemote_command"."name", "MiRemote_command"."code" FROM "MiRemote_command"; args=()
+"GET /miremote/api/commands HTTP/1.1" 200 93
+"GET /miremote HTTP/1.1" 301 0
+"GET /miremote HTTP/1.1" 301 0
+"POST /miremote/api/device/mi1/command/power-off HTTP/1.1" 405 41
+(0.000) 
+            SELECT name, type FROM sqlite_master
+            WHERE type in ('table', 'view') AND NOT name='sqlite_sequence'
+            ORDER BY name; args=None
+(0.000) SELECT "django_migrations"."app", "django_migrations"."name" FROM "django_migrations"; args=()
+"POST /miremote/api/device/mi1/command/power-on HTTP/1.1" 405 41
+"POST /miremote/api/device/mi1/command/power-off HTTP/1.1" 405 41
+(0.000) 
+            SELECT name, type FROM sqlite_master
+            WHERE type in ('table', 'view') AND NOT name='sqlite_sequence'
+            ORDER BY name; args=None
+(0.000) SELECT "django_migrations"."app", "django_migrations"."name" FROM "django_migrations"; args=()
+"POST /miremote/api/device/mi1/command/power-on HTTP/1.1" 405 41
+"POST /miremote/api/device/mi1/command/power-off HTTP/1.1" 405 41
