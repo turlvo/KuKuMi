@@ -122,7 +122,7 @@ def validate_command_value(request):
             'is_taken': True,
             'error_message' : 'A space is not permitted in command name.'
         }
-        
+
     return JsonResponse(data)
 
 def discover(request):
@@ -181,7 +181,7 @@ def read_cmd(request, dev):
         except Device.DoesNotExist:
             raise Http404("No Device matches the given query.")
 
-        result = -1 
+        result = -1
         try:
             result = Miio_api.read_command(fd.ip, fd.token, 333)
         except:

@@ -29,7 +29,4 @@ urlpatterns = [
     url(r'^api/device/(?P<dev>.*)/learn_cmd', views.learn_cmd, name='learn_cmd'),
     url(r'^api/device/(?P<dev>.*)/read_cmd', views.read_cmd, name='read_cmd'),
     url(r'^api/device/(?P<dev>.*)/command/(?P<cmd>.*)', views.send_cmd, name='send_cmd'),
-
-
-
 ]

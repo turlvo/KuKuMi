@@ -21,7 +21,7 @@
           } else {
             document.getElementById('btn_save').style.visibility = 'visible';
           }
-            
+
         }
       });
     });
@@ -79,7 +79,9 @@
     </p>
 
     {% if device %}
-        <button type="button" id="id_btn_command_learn" data-exec-url="{% url 'learn_cmd' dev=device %}">[{{ device}}] Learn Command</button>
+        <button type="button" id="id_btn_command_learn" data-exec-url="{% url 'learn_cmd' dev=device %}">
+            [{{ device}}] Learn Command
+        </button>
     {% endif %}
     <div>
         <form method="POST" data-validate-value-url="{% url 'validate_command_value' %}">
@@ -96,6 +98,6 @@
             {% endif %}
         </form>
    </div>
-    <p id="id_txt_timer" style="overflow: hidden; text-overflow: ellipsis; width: 400px;"></p>
+    <p id="id_txt_timer" style="overflow: hidden; text-overflow: ellipsis; width: 500px;"></p>
 
 {% endblock content1 %}

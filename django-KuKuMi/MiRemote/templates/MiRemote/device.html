@@ -22,12 +22,27 @@
           } else {
             document.getElementById('btn_save').style.visibility = 'visible';
           }
-
         }
       });
-
     });
 
+
+    $(document).ready(function(){
+        $('#id_btn_discover').on('click', function () {
+            var form = $(this).closest("form");
+            $.ajax({
+                type: 'GET',
+                url: $("#id_btn_discover").attr("data-exec-url"),
+                dataType: 'json',
+                success: function (data) {
+                    if (data.result) {
+                        var txt_timer = document.getElementById("id_txt_discover");
+                        txt_timer.innerHTML = JSON.stringify(data.message);
+                    }
+                }
+            });
+        });
+    });
   </script>
 {% endblock %}
 
@@ -37,7 +52,11 @@
     <p>
         <a href="{% url 'index' %}">Goto List</a>
     </p>
-
+    {% if 'create' in request.build_absolute_uri %}
+        <button type="button" id="id_btn_discover" data-exec-url="{% url 'discover' %}">
+            Discover Device
+        </button>
+    {% endif %}
     <div>
         <form method="POST">
             {% csrf_token %}
@@ -53,6 +72,6 @@
             {% endif %}
 
         </form>
-   </div>
-
+    </div>
+    <p id="id_txt_discover" style="overflow: scroll;  width: 500px; height: 40px"></p>
 {% endblock content1 %}

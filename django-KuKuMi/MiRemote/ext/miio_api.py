@@ -3,6 +3,7 @@ import logging
 import socket
 import codecs
 import ipaddress
+import binascii
 
 from .device import Device
 
@@ -63,7 +64,9 @@ class Miio_api:
                                  addr[0],
                                  m.header.value.device_id.decode(),
                                  codecs.encode(m.checksum, 'hex'))
-                    dev = {"dev_ID": m.header.value.device_id.decode(), "ip": addr[0], "token": codecs.encode(m.checksum, 'hex')}
+                    dev = {"dev_ID": binascii.hexlify(m.header.value.device_id).decode(),
+                           "ip": addr[0],
+                           "token": codecs.encode(m.checksum, 'hex').decode()}
                     seen_addrs.append(addr[0])
                     seen_devices.append(dev)
             except socket.timeout:
