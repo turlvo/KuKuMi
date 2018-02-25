@@ -18,9 +18,10 @@
  *
  *  Version history
  */
-def version() {	return "v1.0.000" }
+def version() {	return "v1.1.000" }
 /*
- *  03/28/2017 >>> v1.0.000 - Release first 'KuKu Mi' SmartApp supporting 'Mi Remote'
+ *  02/21/2018 >>> v1.0.000 - Release first 'KuKu Mi' SmartApp supporting 'Mi Remote'
+ *  02/25/2018 >>> v1.1.000 - Added DTH Type and Device Name system 
  */
 
 definition(
@@ -41,6 +42,7 @@ preferences {
     page(name: "mainPage")
     page(name: "installPage")
     page(name: "mainChildPage")
+    page(name: "mainChildPageNext")
     
 }
 
@@ -57,7 +59,7 @@ def mainPage() {
         return installPage()
     } else {
     	def interval
-    	checkServer(atomicState.miApiServerIP)
+    	//checkServer(atomicState.miApiServerIP)
         if (atomicState.serverStatus) {
             interval = 60
         } else {
@@ -71,7 +73,7 @@ def mainPage() {
             
             // Tdo : temp enable
 			if (atomicState.serverStatus == true) {
-				checkServer(atomicState.miApiServerIP)
+				//checkServer(atomicState.miApiServerIP)
 				section() {            
 					paragraph "Checking Mi API Server.  Please wait..."
 				}
@@ -80,6 +82,15 @@ def mainPage() {
 					app( name: "MiDevices", title: "Add a device...", appName: "KuKu Mi", namespace: "turlvo", multiple: true, uninstall: false)
 				}
 			}
+
+            section("Dashboard") {
+                href(name: "hrefNotRequired",
+                     title: "KuKu Mi API Server Dashboard",
+                     required: false,
+                     style: "external",
+                     url: "http://${atomicState.miApiServerIP}/miremote",
+                     description: "tap to view KuKu Mi API website in mobile browser")
+            }
 
             section("KuKu Mi Version :") {
                 paragraph "${version()}"
@@ -91,11 +102,16 @@ def mainPage() {
 def installPage() {
 	dynamicPage(name: "installPage", title: "", install: !atomicState.isInstalled) {
             section("Enter the KuKu Mi API Server IP address :") {
-       	       input name: "miApiIP", type: "text", required: true, title: "IP address?", submitOnChange: true
+       	       input name: "miApiIP", type: "text", required: true, title: "IP address(default 8484 port)?", submitOnChange: true
             }
             
             if (miApiIP) {
-            	atomicState.miApiServerIP = miApiIP
+            	if (miApiIP.contains(":")) {
+            		atomicState.miApiServerIP = miApiIP
+                } else {
+                	atomicState.miApiServerIP = miApiIP + ":8484"
+                }
+                log.debug "installPage>> miApiServerIP : ${atomicState.miApiServerIP}"
             }
     } 	    
 }
@@ -119,53 +135,89 @@ def mainChildPage() {
     } else {
         interval = 3
     }
-    return dynamicPage(name: "mainChildPage", title: "Add Device", refreshInterval: interval, uninstall: true, install: true) {    	
+    return dynamicPage(name: "mainChildPage", title: "Add Device", refreshInterval: interval, nextPage: "mainChildPageNext", uninstall: true) {    	
         log.debug "mainChildPage>> parent's atomicState.MiApiServerIP: ${parent.getMiApiServerIP()}"
         atomicState.miApiServerIP = parent.getMiApiServerIP()
         
-		section("Device Type :") {                                                  
-			input name: "selectDeviceType", type: "enum", title: "Select Device Type :", options: ["Mi Remote"], submitOnChange: true, required: true
-			log.debug "mainChildPage>> selectDeviceType: $selectDeviceType"
-			if (selectDeviceType) {
-                switch (selectDeviceType) {
+		section("Xiaomi Device Type :") {                                                  
+			input name: "selectXiaomiDeviceType", type: "enum", title: "Select Xiaomi Device Type :", options: ["Mi Remote"], submitOnChange: true, required: true
+			log.debug "mainChildPage>> selectXiaomiDeviceType: $selectXiaomiDeviceType"
+			if (selectXiaomiDeviceType) {
+                switch (selectXiaomiDeviceType) {
                 	case "Mi Remote":                    
-						atomicState.deviceType = "miremote"
-                        break
+                    atomicState.xiaomiDeviceType = "miremote"
+                    break
                     default:
-                    	break
+                        break
                 }
-                discoverDevices(atomicState.deviceType)
-                discoverCommands(atomicState.deviceType)
-			}                
-		}
+                discoverDevices(atomicState.xiaomiDeviceType)
+                discoverCommands(atomicState.xiaomiDeviceType)
+            }                
+        }
 
         def foundDevices = getDeviceNames(getDevices())
         log.debug "mainChildPage>> foundDevices : ${foundDevices}"
-        if (atomicState.deviceType && foundDevices) {
-            section("Device :") {                                
-                input name: "selectedDevice", type: "enum",  title: "Select Device", multiple: false, options: foundDevices, submitOnChange: true, required: true
+        if (selectXiaomiDeviceType && foundDevices) {
+            section("Xiaomi Device :") {                                
+                input name: "selectedDevice", type: "enum",  title: "Select Xiaomi Device", multiple: false, options: foundDevices, submitOnChange: true, required: true
                 if (selectedDevice) {
                     atomicState.device = selectedDevice
                 }
             }
 
-            def foundCommands = getCommands()
-            log.debug "mainChildPage>> deviceCommands : ${foundCommands}"
-            if (foundCommands) {
-                addMiRemoteCommandUI(foundCommands)
-
-            } else if (selectedDevice && atomicState.deviceCommands == null) {
-                // log.debug "addDevice()>> selectedDevice: $selectedDevice, commands : $commands"
-                section("") {
-                    paragraph "Loading selected device's command.  This can take a few seconds. Please wait..."
+            section("Name :") { 
+            	input name: "enteredName", type: "text",  title: "Input device name", submitOnChange: true, required: true
+                log.debug "mainChildPage>> enteredName : ${enteredName}"
+                if (enteredName) {
+                    atomicState.deviceName = enteredName
                 }
             }
-        } else if (atomicState.deviceType) {
+            section("DTH Type :") {
+                def deviceType = ["Custom", "Aircon", "TV", "Fan"]
+                input name: "selectedDthType", type: "enum", title: "Select DTH Type", multiple: false, options: deviceType, submitOnChange: true, required: true
+                if (selectedDthType) {
+                    atomicState.dthType = selectedDthType
+                }
+            }
+        } else if (atomicState.xiaomiDeviceType) {
             section() {
                 paragraph "Discovering devices.  Please wait..."
             }
         }
     }
+}
+
+def mainChildPageNext() {
+    return dynamicPage(name: "mainChildPageNext", title: "Command Setting", uninstall: true, install: true) {
+        def foundCommands = getCommands()
+
+        log.debug "mainChildPage>> deviceCommands : ${foundCommands}"
+        if (atomicState.dthType && foundCommands) {
+            switch (selectedDeviceType) {
+                case "Aircon":
+                addAirconDevice(foundCommands)
+                break
+                case "TV":                    
+                addTvDeviceTV(foundCommands)
+                break                
+                case "Fan":
+                addFanDevice(foundCommands)
+                break
+                case "Custom":
+                default:
+                    log.debug "selectedDeviceType>> default"
+                addMiRemoteCommandUI(foundCommands)
+            }
+
+
+        } else if (selectedDevice && atomicState.deviceCommands == null) {
+            // log.debug "addDevice()>> selectedDevice: $selectedDevice, commands : $commands"
+            section("") {
+                paragraph "Loading selected device's command.  This can take a few seconds. Please wait..."
+            }
+        }
+    }
+    
 }
 
 // Add device page for Default On/Off device
@@ -202,8 +254,235 @@ def addMiRemoteCommandUI(foundCommands) {
     state.selectedCommands["cmd10"] = selectedCmd10
     state.selectedCommands["cmd11"] = selectedCmd11
     state.selectedCommands["cmd12"] = selectedCmd12    
+    
+    monitorMenu() 
 
 }
+
+
+// Add device page for Fan device
+def addFanDevice() {
+    def labelOfCommand = getLabelsOfCommands(atomicState.deviceCommands)
+    state.selectedCommands = [:]  
+
+    section("Commands :") {            
+        // input name: "selectedPower", type: "enum", title: "Power Toggle", options: labelOfCommand, submitOnChange: true, multiple: false, required: true
+        input name: "selectedPowerOn", type: "enum", title: "Power On", options: labelOfCommand, submitOnChange: true, multiple: false, required: true
+        input name: "selectedPowerOff", type: "enum", title: "Power Off", options: labelOfCommand, submitOnChange: true, multiple: false, required: true
+        input name: "selectedSpeed", type: "enum", title: "Speed", options: labelOfCommand, submitOnChange: true, multiple: false, required: false
+        input name: "selectedSwing", type: "enum", title: "Swing", options: labelOfCommand, submitOnChange: true, multiple: false, required: false
+        input name: "selectedTimer", type: "enum", title: "Timer", options: labelOfCommand, submitOnChange: true, multiple: false, required: false
+        input name: "custom1", type: "enum", title: "Custom1", options: labelOfCommand, submitOnChange: true, multiple: false, required: false  
+        input name: "custom2", type: "enum", title: "Custom2", options: labelOfCommand, submitOnChange: true, multiple: false, required: false  
+        input name: "custom3", type: "enum", title: "Custom3", options: labelOfCommand, submitOnChange: true, multiple: false, required: false  
+        input name: "custom4", type: "enum", title: "Custom4", options: labelOfCommand, submitOnChange: true, multiple: false, required: false  
+        input name: "custom5", type: "enum", title: "Custom5", options: labelOfCommand, submitOnChange: true, multiple: false, required: false  
+    }
+    //state.selectedCommands["power"] = selectedPower
+    state.selectedCommands["on"] = selectedPowerOn
+    state.selectedCommands["off"] = selectedPowerOff    
+    state.selectedCommands["speed"] = selectedSpeed
+    state.selectedCommands["swing"] = selectedSwing
+    state.selectedCommands["timer"] = selectedTimer
+    state.selectedCommands["custom1"] = custom1
+    state.selectedCommands["custom2"] = custom2
+    state.selectedCommands["custom3"] = custom3
+    state.selectedCommands["custom4"] = custom4
+    state.selectedCommands["custom5"] = custom5    
+
+	monitorMenu() 
+}
+
+// Add device page for Aircon
+def addAirconDevice() {
+    def labelOfCommand = getLabelsOfCommands(atomicState.deviceCommands)
+    state.selectedCommands = [:]    
+
+    section("Commands :") {            
+        //input name: "selectedPowerToggle", type: "enum", title: "Power Toggle", options: labelOfCommand, submitOnChange: true, multiple: false, required: true
+        input name: "selectedPowerOn", type: "enum", title: "Power On", options: labelOfCommand, submitOnChange: true, multiple: false, required: true
+        input name: "selectedPowerOff", type: "enum", title: "Power Off", options: labelOfCommand, submitOnChange: true, multiple: false, required: true
+        input name: "selectedTempUp", type: "enum", title: "Temperature Up", options: labelOfCommand, submitOnChange: true, multiple: false, required: false
+        input name: "selectedMode", type: "enum", title: "Mode", options: labelOfCommand, submitOnChange: true, multiple: false, required: false
+        input name: "selectedJetCool", type: "enum", title: "JetCool", options: labelOfCommand, submitOnChange: true, multiple: false, required: false  
+        input name: "selectedTempDown", type: "enum", title: "Temperature Down", options: labelOfCommand, submitOnChange: true, multiple: false, required: false    
+        input name: "selectedSpeed", type: "enum", title: "Fan Speed", options: labelOfCommand, submitOnChange: true, multiple: false, required: false   
+        input name: "custom1", type: "enum", title: "Custom1", options: labelOfCommand, submitOnChange: true, multiple: false, required: false  
+        input name: "custom2", type: "enum", title: "Custom2", options: labelOfCommand, submitOnChange: true, multiple: false, required: false  
+        input name: "custom3", type: "enum", title: "Custom3", options: labelOfCommand, submitOnChange: true, multiple: false, required: false  
+        input name: "custom4", type: "enum", title: "Custom4", options: labelOfCommand, submitOnChange: true, multiple: false, required: false  
+        input name: "custom5", type: "enum", title: "Custom5", options: labelOfCommand, submitOnChange: true, multiple: false, required: false  
+    }
+
+    //state.selectedCommands["power"] = selectedPowerToggle
+    state.selectedCommands["on"] = selectedPowerOn
+    state.selectedCommands["off"] = selectedPowerOff    
+    state.selectedCommands["tempup"] = selectedTempUp
+    state.selectedCommands["mode"] = selectedMode
+    state.selectedCommands["jetcool"] = selectedJetCool
+    state.selectedCommands["tempdown"] = selectedTempDown
+    state.selectedCommands["speed"] = selectedSpeed
+    state.selectedCommands["custom1"] = custom1
+    state.selectedCommands["custom2"] = custom2
+    state.selectedCommands["custom3"] = custom3
+    state.selectedCommands["custom4"] = custom4
+    state.selectedCommands["custom5"] = custom5  
+
+	monitorMenu() 
+}
+
+// Add device page for TV
+def addTvDeviceTV() {
+    def labelOfCommand = getLabelsOfCommands(atomicState.deviceCommands)
+    state.selectedCommands = [:]    
+
+    section("Commands :") {            
+        //input name: "selectedPowerToggle", type: "enum", title: "Power Toggle", options: labelOfCommand, submitOnChange: true, multiple: false, required: true
+        input name: "selectedPowerOn", type: "enum", title: "Power On", options: labelOfCommand, submitOnChange: true, multiple: false, required: true
+        input name: "selectedPowerOff", type: "enum", title: "Power Off", options: labelOfCommand, submitOnChange: true, multiple: false, required: true
+        input name: "selectedVolumeUp", type: "enum", title: "Volume Up", options: labelOfCommand, submitOnChange: true, multiple: false, required: false
+        input name: "selectedChannelUp", type: "enum", title: "Channel Up", options: labelOfCommand, submitOnChange: true, multiple: false, required: false
+        input name: "selectedMute", type: "enum", title: "Mute", options: labelOfCommand, submitOnChange: true, multiple: false, required: false  
+        input name: "selectedVolumeDown", type: "enum", title: "Volume Down", options: labelOfCommand, submitOnChange: true, multiple: false, required: false    
+        input name: "selectedChannelDown", type: "enum", title: "Channel Down", options: labelOfCommand, submitOnChange: true, multiple: false, required: false      
+        input name: "selectedMenu", type: "enum", title: "Menu", options: labelOfCommand, submitOnChange: true, multiple: false, required: false  
+        input name: "selectedHome", type: "enum", title: "Home", options: labelOfCommand, submitOnChange: true, multiple: false, required: false    
+        input name: "selectedInput", type: "enum", title: "Input", options: labelOfCommand, submitOnChange: true, multiple: false, required: false              
+        input name: "selectedBack", type: "enum", title: "Back", options: labelOfCommand, submitOnChange: true, multiple: false, required: false  
+        input name: "custom1", type: "enum", title: "Custom1", options: labelOfCommand, submitOnChange: true, multiple: false, required: false  
+        input name: "custom2", type: "enum", title: "Custom2", options: labelOfCommand, submitOnChange: true, multiple: false, required: false  
+        input name: "custom3", type: "enum", title: "Custom3", options: labelOfCommand, submitOnChange: true, multiple: false, required: false  
+        input name: "custom4", type: "enum", title: "Custom4", options: labelOfCommand, submitOnChange: true, multiple: false, required: false  
+        input name: "custom5", type: "enum", title: "Custom5", options: labelOfCommand, submitOnChange: true, multiple: false, required: false  
+    }
+    
+    //state.selectedCommands["power"] = selectedPowerToggle
+    state.selectedCommands["on"] = selectedPowerOn
+    state.selectedCommands["off"] = selectedPowerOff  
+	state.selectedCommands["volup"] = selectedVolumeUp
+    state.selectedCommands["chup"] = selectedChannelUp
+    state.selectedCommands["mute"] = selectedMute
+    state.selectedCommands["voldown"] = selectedVolumeDown
+    state.selectedCommands["chdown"] = selectedChannelDown
+    state.selectedCommands["menu"] = selectedMenu
+    state.selectedCommands["home"] = selectedHome
+    state.selectedCommands["input"] = selectedInput
+    state.selectedCommands["back"] = selectedBack
+    state.selectedCommands["custom1"] = custom1
+    state.selectedCommands["custom2"] = custom2
+    state.selectedCommands["custom3"] = custom3
+    state.selectedCommands["custom4"] = custom4
+    state.selectedCommands["custom5"] = custom5  
+ 
+ 	monitorMenu() 
+}
+
+
+// ------------------------------------
+// Monitoring sub menu
+def monitorMenu() {
+    section("State Monitor :") {
+        paragraph "It is a function to complement IrDA's biggest drawback. Through sensor's state, synchronize deivce status."
+        def monitorType = ["Power Meter", "Contact"]
+        input name: "selectedMonitorType", type: "enum", title: "Select Monitor Type", multiple: false, options: monitorType, submitOnChange: true, required: false                    
+    }  
+
+    atomicState.selectedMonitorType = selectedMonitorType
+    if (selectedMonitorType) {            
+        switch (selectedMonitorType) {
+            case "Power Meter":
+            powerMonitorMenu()                
+            break
+            case "Contact":
+            contactMonitorMenu()
+            break
+        }
+    }
+}
+
+def powerMonitorMenu() {
+    section("Power Monitor :") {
+        input name: "powerMonitor", type: "capability.powerMeter", title: "Device", submitOnChange: true, multiple: false, required: false
+        state.triggerOnFlag = false;
+        state.triggerOffFlag = false;
+        if (powerMonitor) {                
+            input name: "triggerOnValue", type: "decimal", title: "On Trigger Watt", submitOnChange: true, multiple: false, required: true
+            input name: "triggerOffValue", type: "decimal", title: "Off Trigger Watt", submitOnChange: true, multiple: false, required: true                
+        }   
+    } 
+}
+
+def contactMonitorMenu() {
+    section("Contact :") {
+        input name: "contactMonitor", type: "capability.contactSensor", title: "Device", submitOnChange: true, multiple: false, required: false
+    	if (contactMonitor) {    
+            paragraph "[Normal] : Open(On) / Close(Off)\n[Reverse] : Open(Off) / Close(On)"
+            input name: "contactMonitorMode", type: "enum", title: "Mode", multiple: false, options: ["Normal", "Reverse"], defaultValue: "Normal", submitOnChange: true, required: true	
+    	}
+        atomicState.contactMonitorMode = contactMonitorMode
+    }
+}
+
+
+// ------------------------------------
+// Monitor Handler
+// Subscribe power value and change status
+def powerMonitorHandler(evt) {
+    //def device = []    
+    //device = getDeviceByName("$selectedDevice")
+    //def deviceId = device.id
+    def deviceId = "${atomicState.device}_${atomicState.deviceName}"
+    def child = getChildDevice(deviceId)
+    def event
+
+    log.debug "value is over triggerValue>> flag: $state.triggerOnFlag, value: $evt.value, triggerValue: ${triggerOnValue.floatValue()}"        
+    if (Float.parseFloat(evt.value) >= triggerOnValue.floatValue() && state.triggerOnFlag == false) {    	
+        event =  [value: "on"]
+        child.generateEvent(event)
+        log.debug "value is over send*****"
+        state.triggerOnFlag = true
+    } else if (Float.parseFloat(evt.value) < triggerOnValue.floatValue()) {
+        state.triggerOnFlag = false
+    }
+
+    log.debug "value is under triggerValue>> flag: $state.triggerOffFlag, value: $evt.value, triggerValue: ${triggerOffValue.floatValue()}"
+    if (Float.parseFloat(evt.value) <= triggerOffValue.floatValue() && state.triggerOffFlag == false){    	
+        event =  [value: "off"]        
+        child.generateEvent(event)
+        log.debug "value is under send*****"
+        state.triggerOffFlag = true
+    } else if (Float.parseFloat(evt.value) > triggerOffValue.floatValue()) {
+        state.triggerOffFlag = false
+    }
+
+}
+
+// Subscribe contact value and change status
+def contactMonitorHandler(evt) {
+    //def device = []    
+    //device = getDeviceByName("$selectedDevice")
+    //def deviceId = device.id
+    def deviceId = "${atomicState.device}_${atomicState.deviceName}"
+    def child = getChildDevice(deviceId)
+    def event
+
+	def contacted = "off", notContacted = "on"
+    if (atomicState.contactMonitorMode == "Reverse") {
+    	contacted = "on"
+        notContacted = "off"
+    }
+    log.debug "contactMonitorHandler>> value is : $evt.value"
+    if (evt.value == "open") {
+        event = [value: notContacted] 
+    } else {
+        event = [value: contacted] 
+    }
+    child.generateEvent(event)
+}
+
+
+
+// ------------------------------------
 
 def getCommandName(cmd) {
 	def name = state.selectedCommands[cmd]
@@ -214,17 +493,24 @@ def getCommandName(cmd) {
 // Install child device
 def initializeChild() {
     //def devices = getDevices()    
-    log.debug "addDeviceDone: $selectedDevice, type: $atomicState.deviceType"
-    app.updateLabel("$selectedDevice")
+    log.debug "addDeviceDone: $selectedDevice, xiaomi type: $atomicState.xiaomiDeviceType"
 
-    def device = []    
-    device = getDeviceByName("$selectedDevice")
-    log.debug "addDeviceDone>> device: $device"    
 
-    def deviceId = device.id
+	unsubscribe()
+    if (atomicState.selectedMonitorType == "Power Meter") {  
+    	log.debug "Power: $powerMonitor"
+    	subscribe(powerMonitor, "power", powerMonitorHandler)
+    } else if (atomicState.selectedMonitorType == "Contact") {
+    	log.debug "Contact: $contactMonitor"
+    	subscribe(contactMonitor, "contact", contactMonitorHandler)
+    }
+    
+    def deviceId = "${atomicState.device}_${atomicState.deviceName}"
     def existing = getChildDevice(deviceId)
+    app.updateLabel("$deviceId")
     if (!existing) {
-        def childDevice = addChildDevice("turlvo", "KuKu Mi_${selectDeviceType}", deviceId, null, ["label": device.name])
+        def childDevice = addChildDevice("turlvo", "KuKu Mi_${atomicState.xiaomiDeviceType}_${atomicState.dthType}", 
+        								deviceId, null, ["label": deviceId])
     } else {
         log.debug "Device already created"
         existing.updated()
@@ -236,13 +522,13 @@ def initializeChild() {
 def command(child, command) {
 	//def device = getDeviceByName("$selectedDevice")
     
-	log.debug "childApp parent command(child)>>  type : $atomicState.deviceType, device: $atomicState.device, command: $command"
+	log.debug "childApp parent command(child)>>  type : $atomicState.xiaomiDeviceType, device: $atomicState.device, command: $command"
     
     def result
-    result = sendCommandToDevice(atomicState.deviceType, atomicState.device, command)
-    if (result && result.message != "ok") {
-        sendCommandToDevice(atomicState.device, command)
-    }
+    result = sendCommandToDevice(atomicState.xiaomiDeviceType, atomicState.device, command)
+    //if (result && result.message != "ok") {
+    //    sendCommandToDevice(atomicState.device, command)
+    //}
 }
 
 // ------------------------------------
@@ -277,7 +563,7 @@ private removeChildDevices(delete) {
 // ------- Hub Command -------
 
 // getCommandsOfDevice
-// return : result of 'discoverCommands(deviceType)' method. It means that recently requested device's commands
+// return : result of 'discoverCommands(xiaomiDeviceType)' method. It means that recently requested device's commands
 def getCommands() {
     //log.debug "getCommandsOfDevice>> $atomicState.foundCommandOfDevice"
     
@@ -345,6 +631,7 @@ def sendCommandToDevice_response(resp) {
     } else {
     	log.error("sendCommandToDevice_response >> response body is  null")
     }
+    return
 }
 
 
@@ -362,12 +649,12 @@ def discoverCommands(devType) {
 def discoverCommands_response(resp) {
    	def result = []
     def body = new groovy.json.JsonSlurper().parseText(parseLanMessage(resp.description).body)
-	log.debug("discoverCommands_response >> $body")
+	//log.debug("discoverCommands_response >> $body")
 
     if(body) {            	
         body.each {            
             //def command = ['label' : it.label, 'slug' : it.slug]
-            log.debug "getCommands_response>> command: $it"
+            //log.debug "getCommands_response>> command: $it"
             result.add(it.name)            
         }
     }
