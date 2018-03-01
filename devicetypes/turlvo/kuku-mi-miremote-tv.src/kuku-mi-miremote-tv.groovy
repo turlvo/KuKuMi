@@ -302,7 +302,7 @@ def custom5() {
 
 def on() {
 	log.debug "child on()"
-	parent.command(this, parent.getCommandName("on"))
+	parent.command(this, "on")
     sendEvent(name: "switch", value: "on")
 	
 	if (momentaryOn) {
@@ -319,7 +319,7 @@ def momentaryOnHandler() {
 
 def off() {
 	log.debug "child off"
-	parent.command(this, parent.getCommandName("off"))
+	parent.command(this, "off")
     sendEvent(name: "switch", value: "off")
 }
 
