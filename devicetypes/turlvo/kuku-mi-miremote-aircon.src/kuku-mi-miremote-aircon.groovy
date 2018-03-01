@@ -151,7 +151,8 @@ def speed() {
 
 def setRangedLevel(value) {
 	log.debug "setting ranged level to $value"
-	parent.commandValue(this, "aircon_$value")
+	parent.command(this, "temp$value")
+    sendEvent(name: "switch", value: "on")
     sendEvent(name:"level", value:value)
 }
 

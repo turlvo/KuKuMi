@@ -236,43 +236,43 @@ def back(value) {
 
 def number_1(value) {
     log.debug "child number_1()"
-    parent.commandValue(this, "1")   
+    parent.command(this, "num1")   
 }
 def number_2(value) {
     log.debug "child number_2()"
-    parent.commandValue(this, "2")   
+    parent.command(this, "num2")   
 }
 def number_3(value) {
     log.debug "child number_3()"
-    parent.commandValue(this, "3")   
+    parent.command(this, "num3")   
 }
 def number_4(value) {
     log.debug "child number_4()"
-    parent.commandValue(this, "4")   
+    parent.command(this, "num4")   
 }
 def number_5(value) {
     log.debug "child number_5()"
-    parent.commandValue(this, "5")   
+    parent.command(this, "num5")   
 }
 def number_6(value) {
     log.debug "child number_6()"
-    parent.commandValue(this, "6")   
+    parent.command(this, "num6")   
 }
 def number_7(value) {
     log.debug "child number_7()"
-    parent.commandValue(this, "7")   
+    parent.command(this, "num7")   
 }
 def number_8(value) {
     log.debug "child number_8()"
-    parent.commandValue(this, "8")   
+    parent.command(this, "num8")   
 }
 def number_9(value) {
     log.debug "child number_9()"
-    parent.commandValue(this, "9")   
+    parent.command(this, "num9")   
 }
 def number_0(value) {
     log.debug "child number_0()"
-    parent.commandValue(this, "0")   
+    parent.command(this, "num0")   
 }
 
 def custom1() {
