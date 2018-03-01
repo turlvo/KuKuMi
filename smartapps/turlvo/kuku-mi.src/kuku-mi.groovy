@@ -18,10 +18,11 @@
  *
  *  Version history
  */
-def version() {	return "v1.1.000" }
+def version() {	return "v1.1.500" }
 /*
  *  02/21/2018 >>> v1.0.000 - Release first 'KuKu Mi' SmartApp supporting 'Mi Remote'
  *  02/25/2018 >>> v1.1.000 - Added DTH Type and Device Name system 
+ *  03/01/2018 >>> v1.1.500 - Modified 'Fan' DTH and added 'Light' DTH by ShinJjang
  */
 
 definition(
@@ -85,7 +86,7 @@ def mainPage() {
 
             section("Dashboard") {
                 href(name: "hrefNotRequired",
-                     title: "KuKu Mi API Server Dashboard",
+                     title: "Dashboard(Local Network Only)",
                      required: false,
                      style: "external",
                      url: "http://${atomicState.miApiServerIP}/miremote",
@@ -173,7 +174,7 @@ def mainChildPage() {
                 }
             }
             section("DTH Type :") {
-                def deviceType = ["Custom", "Aircon", "TV", "Fan"]
+                def deviceType = ["Custom", "Aircon", "TV", "Fan", "Light"]
                 input name: "selectedDthType", type: "enum", title: "Select DTH Type", multiple: false, options: deviceType, submitOnChange: true, required: true
                 if (selectedDthType) {
                     atomicState.dthType = selectedDthType
@@ -193,16 +194,19 @@ def mainChildPageNext() {
 
         log.debug "mainChildPage>> deviceCommands : ${foundCommands}"
         if (atomicState.dthType && foundCommands) {
-            switch (selectedDeviceType) {
+            switch (atomicState.dthType) {
                 case "Aircon":
                 addAirconDevice(foundCommands)
                 break
                 case "TV":                    
-                addTvDeviceTV(foundCommands)
+                addTvDevice(foundCommands)
                 break                
                 case "Fan":
                 addFanDevice(foundCommands)
                 break
+                case "Light":
+                addLightDevice(foundCommands)
+                break;
                 case "Custom":
                 default:
                     log.debug "selectedDeviceType>> default"
@@ -259,31 +263,77 @@ def addMiRemoteCommandUI(foundCommands) {
 
 }
 
-
 // Add device page for Fan device
-def addFanDevice() {
-    def labelOfCommand = getLabelsOfCommands(atomicState.deviceCommands)
-    state.selectedCommands = [:]  
+def addFanDevice(foundCommands) {
+    state.selectedCommands = [:]
 
-    section("Commands :") {            
-        // input name: "selectedPower", type: "enum", title: "Power Toggle", options: labelOfCommand, submitOnChange: true, multiple: false, required: true
-        input name: "selectedPowerOn", type: "enum", title: "Power On", options: labelOfCommand, submitOnChange: true, multiple: false, required: true
-        input name: "selectedPowerOff", type: "enum", title: "Power Off", options: labelOfCommand, submitOnChange: true, multiple: false, required: true
-        input name: "selectedSpeed", type: "enum", title: "Speed", options: labelOfCommand, submitOnChange: true, multiple: false, required: false
-        input name: "selectedSwing", type: "enum", title: "Swing", options: labelOfCommand, submitOnChange: true, multiple: false, required: false
-        input name: "selectedTimer", type: "enum", title: "Timer", options: labelOfCommand, submitOnChange: true, multiple: false, required: false
-        input name: "custom1", type: "enum", title: "Custom1", options: labelOfCommand, submitOnChange: true, multiple: false, required: false  
-        input name: "custom2", type: "enum", title: "Custom2", options: labelOfCommand, submitOnChange: true, multiple: false, required: false  
-        input name: "custom3", type: "enum", title: "Custom3", options: labelOfCommand, submitOnChange: true, multiple: false, required: false  
-        input name: "custom4", type: "enum", title: "Custom4", options: labelOfCommand, submitOnChange: true, multiple: false, required: false  
-        input name: "custom5", type: "enum", title: "Custom5", options: labelOfCommand, submitOnChange: true, multiple: false, required: false  
+    section("Commands :") {
+        input name: "selectedPowerOn", type: "enum", title: "Power On", options: foundCommands, submitOnChange: true, multiple: false, required: true
+        input name: "selectedPowerOff", type: "enum", title: "Power Off", options: foundCommands, submitOnChange: true, multiple: false, required: true
+        input name: "selectedHighSpeed", type: "enum", title: "High Speed", options: foundCommands, submitOnChange: true, multiple: false, required: false
+        input name: "selectedMedSpeed", type: "enum", title: "Med Speed", options: foundCommands, submitOnChange: true, multiple: false, required: false
+        input name: "selectedLowSpeed", type: "enum", title: "Low Speed", options: foundCommands, submitOnChange: true, multiple: false, required: false
+        input name: "selectedSwingModeOn", type: "enum", title: "Swing On", options: foundCommands, submitOnChange: true, multiple: false, required: false
+        input name: "selectedSwingModeOff", type: "enum", title: "Swing Off", options: foundCommands, submitOnChange: true, multiple: false, required: false
+        input name: "selectedSleepModeOn", type: "enum", title: "Sleep Mode On", options: foundCommands, submitOnChange: true, multiple: false, required: false
+        input name: "selectedSleepModeOff", type: "enum", title: "Sleep Mode Off", options: foundCommands, submitOnChange: true, multiple: false, required: false
+        input name: "selectedTimer", type: "enum", title: "Timer", options: foundCommands, submitOnChange: true, multiple: false, required: false
+        input name: "custom1", type: "enum", title: "Custom1", options: foundCommands, submitOnChange: true, multiple: false, required: false  
+        input name: "custom2", type: "enum", title: "Custom2", options: foundCommands, submitOnChange: true, multiple: false, required: false  
+        input name: "custom3", type: "enum", title: "Custom3", options: foundCommands, submitOnChange: true, multiple: false, required: false  
+        input name: "custom4", type: "enum", title: "Custom4", options: foundCommands, submitOnChange: true, multiple: false, required: false  
+        input name: "custom5", type: "enum", title: "Custom5", options: foundCommands, submitOnChange: true, multiple: false, required: false  
     }
     //state.selectedCommands["power"] = selectedPower
     state.selectedCommands["on"] = selectedPowerOn
     state.selectedCommands["off"] = selectedPowerOff    
-    state.selectedCommands["speed"] = selectedSpeed
-    state.selectedCommands["swing"] = selectedSwing
+    state.selectedCommands["highSpeed"] = selectedHighSpeed
+    state.selectedCommands["medSpeed"] = selectedMedSpeed
+    state.selectedCommands["lowSpeed"] = selectedLowSpeed
+    state.selectedCommands["swingModeOn"] = selectedSwingModeOn
+    state.selectedCommands["swingModeOff"] = selectedSwingModeOff
     state.selectedCommands["timer"] = selectedTimer
+    state.selectedCommands["sleepModeOn"] = selectedSleepModeOn
+    state.selectedCommands["sleepModeOff"] = selectedSleepModeOff
+    state.selectedCommands["custom1"] = custom1
+    state.selectedCommands["custom2"] = custom2
+    state.selectedCommands["custom3"] = custom3
+    state.selectedCommands["custom4"] = custom4
+    state.selectedCommands["custom5"] = custom5    
+
+	monitorMenu() 
+}
+
+// Add device page for Fan device
+def addLightDevice(foundCommands) {
+    state.selectedCommands = [:]
+
+    section("Commands :") {
+        input name: "selectedPowerOn", type: "enum", title: "Power On", options: foundCommands, submitOnChange: true, multiple: false, required: true
+        input name: "selectedPowerOff", type: "enum", title: "Power Off", options: foundCommands, submitOnChange: true, multiple: false, required: true
+        input name: "selectedHighLight", type: "enum", title: "High Light", options: foundCommands, submitOnChange: true, multiple: false, required: false
+        input name: "selectedMedLight", type: "enum", title: "Med Light", options: foundCommands, submitOnChange: true, multiple: false, required: false
+        input name: "selectedLowLight", type: "enum", title: "Low Light", options: foundCommands, submitOnChange: true, multiple: false, required: false
+        input name: "selectedSleepModeOn", type: "enum", title: "Sleep Mode On", options: foundCommands, submitOnChange: true, multiple: false, required: false
+        input name: "selectedSleepModeOff", type: "enum", title: "Sleep Mode Off", options: foundCommands, submitOnChange: true, multiple: false, required: false
+        input name: "selectedTimer30", type: "enum", title: "Timer 30 minutes", options: foundCommands, submitOnChange: true, multiple: false, required: false
+        input name: "selectedTimer60", type: "enum", title: "Timer 60 minutes", options: foundCommands, submitOnChange: true, multiple: false, required: false
+        input name: "custom1", type: "enum", title: "Custom1", options: foundCommands, submitOnChange: true, multiple: false, required: false  
+        input name: "custom2", type: "enum", title: "Custom2", options: foundCommands, submitOnChange: true, multiple: false, required: false  
+        input name: "custom3", type: "enum", title: "Custom3", options: foundCommands, submitOnChange: true, multiple: false, required: false  
+        input name: "custom4", type: "enum", title: "Custom4", options: foundCommands, submitOnChange: true, multiple: false, required: false  
+        input name: "custom5", type: "enum", title: "Custom5", options: foundCommands, submitOnChange: true, multiple: false, required: false  
+    }
+    //state.selectedCommands["power"] = selectedPower
+    state.selectedCommands["on"] = selectedPowerOn
+    state.selectedCommands["off"] = selectedPowerOff    
+    state.selectedCommands["highLight"] = selectedHighLight
+    state.selectedCommands["medLight"] = selectedMedLight
+    state.selectedCommands["lowLight"] = selectedLowLight
+    state.selectedCommands["sleepModeOn"] = selectedSleepModeOn
+    state.selectedCommands["sleepModeOff"] = selectedSleepModeOff
+    state.selectedCommands["timer30"] = selectedTimer30
+    state.selectedCommands["timer60"] = selectedTimer60
     state.selectedCommands["custom1"] = custom1
     state.selectedCommands["custom2"] = custom2
     state.selectedCommands["custom3"] = custom3
@@ -294,24 +344,22 @@ def addFanDevice() {
 }
 
 // Add device page for Aircon
-def addAirconDevice() {
-    def labelOfCommand = getLabelsOfCommands(atomicState.deviceCommands)
-    state.selectedCommands = [:]    
-
+def addAirconDevice(foundCommands) {
+    state.selectedCommands = [:]
+    
     section("Commands :") {            
-        //input name: "selectedPowerToggle", type: "enum", title: "Power Toggle", options: labelOfCommand, submitOnChange: true, multiple: false, required: true
-        input name: "selectedPowerOn", type: "enum", title: "Power On", options: labelOfCommand, submitOnChange: true, multiple: false, required: true
-        input name: "selectedPowerOff", type: "enum", title: "Power Off", options: labelOfCommand, submitOnChange: true, multiple: false, required: true
-        input name: "selectedTempUp", type: "enum", title: "Temperature Up", options: labelOfCommand, submitOnChange: true, multiple: false, required: false
-        input name: "selectedMode", type: "enum", title: "Mode", options: labelOfCommand, submitOnChange: true, multiple: false, required: false
-        input name: "selectedJetCool", type: "enum", title: "JetCool", options: labelOfCommand, submitOnChange: true, multiple: false, required: false  
-        input name: "selectedTempDown", type: "enum", title: "Temperature Down", options: labelOfCommand, submitOnChange: true, multiple: false, required: false    
-        input name: "selectedSpeed", type: "enum", title: "Fan Speed", options: labelOfCommand, submitOnChange: true, multiple: false, required: false   
-        input name: "custom1", type: "enum", title: "Custom1", options: labelOfCommand, submitOnChange: true, multiple: false, required: false  
-        input name: "custom2", type: "enum", title: "Custom2", options: labelOfCommand, submitOnChange: true, multiple: false, required: false  
-        input name: "custom3", type: "enum", title: "Custom3", options: labelOfCommand, submitOnChange: true, multiple: false, required: false  
-        input name: "custom4", type: "enum", title: "Custom4", options: labelOfCommand, submitOnChange: true, multiple: false, required: false  
-        input name: "custom5", type: "enum", title: "Custom5", options: labelOfCommand, submitOnChange: true, multiple: false, required: false  
+        input name: "selectedPowerOn", type: "enum", title: "Power On", options: foundCommands, submitOnChange: true, multiple: false, required: true
+        input name: "selectedPowerOff", type: "enum", title: "Power Off", options: foundCommands, submitOnChange: true, multiple: false, required: true
+        input name: "selectedTempUp", type: "enum", title: "Temperature Up", options: foundCommands, submitOnChange: true, multiple: false, required: false
+        input name: "selectedMode", type: "enum", title: "Mode", options: foundCommands, submitOnChange: true, multiple: false, required: false
+        input name: "selectedJetCool", type: "enum", title: "JetCool", options: foundCommands, submitOnChange: true, multiple: false, required: false  
+        input name: "selectedTempDown", type: "enum", title: "Temperature Down", options: foundCommands, submitOnChange: true, multiple: false, required: false    
+        input name: "selectedSpeed", type: "enum", title: "Fan Speed", options: foundCommands, submitOnChange: true, multiple: false, required: false   
+        input name: "custom1", type: "enum", title: "Custom1", options: foundCommands, submitOnChange: true, multiple: false, required: false  
+        input name: "custom2", type: "enum", title: "Custom2", options: foundCommands, submitOnChange: true, multiple: false, required: false  
+        input name: "custom3", type: "enum", title: "Custom3", options: foundCommands, submitOnChange: true, multiple: false, required: false  
+        input name: "custom4", type: "enum", title: "Custom4", options: foundCommands, submitOnChange: true, multiple: false, required: false  
+        input name: "custom5", type: "enum", title: "Custom5", options: foundCommands, submitOnChange: true, multiple: false, required: false  
     }
 
     //state.selectedCommands["power"] = selectedPowerToggle
@@ -332,28 +380,26 @@ def addAirconDevice() {
 }
 
 // Add device page for TV
-def addTvDeviceTV() {
-    def labelOfCommand = getLabelsOfCommands(atomicState.deviceCommands)
-    state.selectedCommands = [:]    
-
-    section("Commands :") {            
-        //input name: "selectedPowerToggle", type: "enum", title: "Power Toggle", options: labelOfCommand, submitOnChange: true, multiple: false, required: true
-        input name: "selectedPowerOn", type: "enum", title: "Power On", options: labelOfCommand, submitOnChange: true, multiple: false, required: true
-        input name: "selectedPowerOff", type: "enum", title: "Power Off", options: labelOfCommand, submitOnChange: true, multiple: false, required: true
-        input name: "selectedVolumeUp", type: "enum", title: "Volume Up", options: labelOfCommand, submitOnChange: true, multiple: false, required: false
-        input name: "selectedChannelUp", type: "enum", title: "Channel Up", options: labelOfCommand, submitOnChange: true, multiple: false, required: false
-        input name: "selectedMute", type: "enum", title: "Mute", options: labelOfCommand, submitOnChange: true, multiple: false, required: false  
-        input name: "selectedVolumeDown", type: "enum", title: "Volume Down", options: labelOfCommand, submitOnChange: true, multiple: false, required: false    
-        input name: "selectedChannelDown", type: "enum", title: "Channel Down", options: labelOfCommand, submitOnChange: true, multiple: false, required: false      
-        input name: "selectedMenu", type: "enum", title: "Menu", options: labelOfCommand, submitOnChange: true, multiple: false, required: false  
-        input name: "selectedHome", type: "enum", title: "Home", options: labelOfCommand, submitOnChange: true, multiple: false, required: false    
-        input name: "selectedInput", type: "enum", title: "Input", options: labelOfCommand, submitOnChange: true, multiple: false, required: false              
-        input name: "selectedBack", type: "enum", title: "Back", options: labelOfCommand, submitOnChange: true, multiple: false, required: false  
-        input name: "custom1", type: "enum", title: "Custom1", options: labelOfCommand, submitOnChange: true, multiple: false, required: false  
-        input name: "custom2", type: "enum", title: "Custom2", options: labelOfCommand, submitOnChange: true, multiple: false, required: false  
-        input name: "custom3", type: "enum", title: "Custom3", options: labelOfCommand, submitOnChange: true, multiple: false, required: false  
-        input name: "custom4", type: "enum", title: "Custom4", options: labelOfCommand, submitOnChange: true, multiple: false, required: false  
-        input name: "custom5", type: "enum", title: "Custom5", options: labelOfCommand, submitOnChange: true, multiple: false, required: false  
+def addTvDevice(foundCommands) {
+    state.selectedCommands = [:]
+    
+    section("Commands :") {     
+        input name: "selectedPowerOn", type: "enum", title: "Power On", options: foundCommands, submitOnChange: true, multiple: false, required: true
+        input name: "selectedPowerOff", type: "enum", title: "Power Off", options: foundCommands, submitOnChange: true, multiple: false, required: true
+        input name: "selectedVolumeUp", type: "enum", title: "Volume Up", options: foundCommands, submitOnChange: true, multiple: false, required: false
+        input name: "selectedChannelUp", type: "enum", title: "Channel Up", options: foundCommands, submitOnChange: true, multiple: false, required: false
+        input name: "selectedMute", type: "enum", title: "Mute", options: foundCommands, submitOnChange: true, multiple: false, required: false  
+        input name: "selectedVolumeDown", type: "enum", title: "Volume Down", options: foundCommands, submitOnChange: true, multiple: false, required: false    
+        input name: "selectedChannelDown", type: "enum", title: "Channel Down", options: foundCommands, submitOnChange: true, multiple: false, required: false      
+        input name: "selectedMenu", type: "enum", title: "Menu", options: foundCommands, submitOnChange: true, multiple: false, required: false  
+        input name: "selectedHome", type: "enum", title: "Home", options: foundCommands, submitOnChange: true, multiple: false, required: false    
+        input name: "selectedInput", type: "enum", title: "Input", options: foundCommands, submitOnChange: true, multiple: false, required: false              
+        input name: "selectedBack", type: "enum", title: "Back", options: foundCommands, submitOnChange: true, multiple: false, required: false  
+        input name: "custom1", type: "enum", title: "Custom1", options: foundCommands, submitOnChange: true, multiple: false, required: false  
+        input name: "custom2", type: "enum", title: "Custom2", options: foundCommands, submitOnChange: true, multiple: false, required: false  
+        input name: "custom3", type: "enum", title: "Custom3", options: foundCommands, submitOnChange: true, multiple: false, required: false  
+        input name: "custom4", type: "enum", title: "Custom4", options: foundCommands, submitOnChange: true, multiple: false, required: false  
+        input name: "custom5", type: "enum", title: "Custom5", options: foundCommands, submitOnChange: true, multiple: false, required: false  
     }
     
     //state.selectedCommands["power"] = selectedPowerToggle
@@ -523,12 +569,12 @@ def command(child, command) {
 	//def device = getDeviceByName("$selectedDevice")
     
 	log.debug "childApp parent command(child)>>  type : $atomicState.xiaomiDeviceType, device: $atomicState.device, command: $command"
-    
-    def result
-    result = sendCommandToDevice(atomicState.xiaomiDeviceType, atomicState.device, command)
-    //if (result && result.message != "ok") {
-    //    sendCommandToDevice(atomicState.device, command)
-    //}
+    def realCmd = getCommandName(command)
+ 
+ 	if (realCmd != null) {
+    	sendCommandToDevice(atomicState.xiaomiDeviceType, atomicState.device, realCmd)
+    }
+
 }
 
 // ------------------------------------
