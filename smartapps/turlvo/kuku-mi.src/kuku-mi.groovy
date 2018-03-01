@@ -18,11 +18,12 @@
  *
  *  Version history
  */
-def version() {	return "v1.1.500" }
+def version() {	return "v1.1.600" }
 /*
  *  02/21/2018 >>> v1.0.000 - Release first 'KuKu Mi' SmartApp supporting 'Mi Remote'
  *  02/25/2018 >>> v1.1.000 - Added DTH Type and Device Name system 
  *  03/01/2018 >>> v1.1.500 - Modified 'Fan' DTH and added 'Light' DTH by ShinJjang
+ *  03/01/2018 >>> v1.1.600 - Modified 'Aircon' and 'TV' DTH's number command routine
  */
 
 definition(
@@ -351,18 +352,30 @@ def addAirconDevice(foundCommands) {
         input name: "selectedPowerOn", type: "enum", title: "Power On", options: foundCommands, submitOnChange: true, multiple: false, required: true
         input name: "selectedPowerOff", type: "enum", title: "Power Off", options: foundCommands, submitOnChange: true, multiple: false, required: true
         input name: "selectedTempUp", type: "enum", title: "Temperature Up", options: foundCommands, submitOnChange: true, multiple: false, required: false
+        input name: "selectedTempDown", type: "enum", title: "Temperature Down", options: foundCommands, submitOnChange: true, multiple: false, required: false 
         input name: "selectedMode", type: "enum", title: "Mode", options: foundCommands, submitOnChange: true, multiple: false, required: false
         input name: "selectedJetCool", type: "enum", title: "JetCool", options: foundCommands, submitOnChange: true, multiple: false, required: false  
-        input name: "selectedTempDown", type: "enum", title: "Temperature Down", options: foundCommands, submitOnChange: true, multiple: false, required: false    
         input name: "selectedSpeed", type: "enum", title: "Fan Speed", options: foundCommands, submitOnChange: true, multiple: false, required: false   
         input name: "custom1", type: "enum", title: "Custom1", options: foundCommands, submitOnChange: true, multiple: false, required: false  
         input name: "custom2", type: "enum", title: "Custom2", options: foundCommands, submitOnChange: true, multiple: false, required: false  
         input name: "custom3", type: "enum", title: "Custom3", options: foundCommands, submitOnChange: true, multiple: false, required: false  
         input name: "custom4", type: "enum", title: "Custom4", options: foundCommands, submitOnChange: true, multiple: false, required: false  
         input name: "custom5", type: "enum", title: "Custom5", options: foundCommands, submitOnChange: true, multiple: false, required: false  
+        input name: "temp18", type: "enum", title: "Temperature 18", options: foundCommands, submitOnChange: true, multiple: false, required: false  
+        input name: "temp19", type: "enum", title: "Temperature 19", options: foundCommands, submitOnChange: true, multiple: false, required: false  
+        input name: "temp20", type: "enum", title: "Temperature 20", options: foundCommands, submitOnChange: true, multiple: false, required: false  
+        input name: "temp21", type: "enum", title: "Temperature 21", options: foundCommands, submitOnChange: true, multiple: false, required: false  
+        input name: "temp22", type: "enum", title: "Temperature 22", options: foundCommands, submitOnChange: true, multiple: false, required: false  
+        input name: "temp23", type: "enum", title: "Temperature 23", options: foundCommands, submitOnChange: true, multiple: false, required: false  
+        input name: "temp24", type: "enum", title: "Temperature 24", options: foundCommands, submitOnChange: true, multiple: false, required: false  
+        input name: "temp25", type: "enum", title: "Temperature 25", options: foundCommands, submitOnChange: true, multiple: false, required: false  
+        input name: "temp26", type: "enum", title: "Temperature 26", options: foundCommands, submitOnChange: true, multiple: false, required: false  
+        input name: "temp27", type: "enum", title: "Temperature 27", options: foundCommands, submitOnChange: true, multiple: false, required: false  
+        input name: "temp28", type: "enum", title: "Temperature 28", options: foundCommands, submitOnChange: true, multiple: false, required: false  
+        input name: "temp29", type: "enum", title: "Temperature 29", options: foundCommands, submitOnChange: true, multiple: false, required: false  
+        input name: "temp30", type: "enum", title: "Temperature 30", options: foundCommands, submitOnChange: true, multiple: false, required: false  
     }
 
-    //state.selectedCommands["power"] = selectedPowerToggle
     state.selectedCommands["on"] = selectedPowerOn
     state.selectedCommands["off"] = selectedPowerOff    
     state.selectedCommands["tempup"] = selectedTempUp
@@ -374,7 +387,21 @@ def addAirconDevice(foundCommands) {
     state.selectedCommands["custom2"] = custom2
     state.selectedCommands["custom3"] = custom3
     state.selectedCommands["custom4"] = custom4
-    state.selectedCommands["custom5"] = custom5  
+    state.selectedCommands["custom5"] = custom5 
+    
+    state.selectedCommands["temp18"] = temp18
+    state.selectedCommands["temp19"] = temp19
+    state.selectedCommands["temp20"] = temp20
+    state.selectedCommands["temp21"] = temp21
+    state.selectedCommands["temp22"] = temp22  
+    state.selectedCommands["temp23"] = temp23
+    state.selectedCommands["temp24"] = temp24
+    state.selectedCommands["temp25"] = temp25
+    state.selectedCommands["temp26"] = temp26
+    state.selectedCommands["temp27"] = temp27  
+    state.selectedCommands["temp28"] = temp28
+    state.selectedCommands["temp29"] = temp29
+    state.selectedCommands["temp30"] = temp30  
 
 	monitorMenu() 
 }
@@ -394,7 +421,17 @@ def addTvDevice(foundCommands) {
         input name: "selectedMenu", type: "enum", title: "Menu", options: foundCommands, submitOnChange: true, multiple: false, required: false  
         input name: "selectedHome", type: "enum", title: "Home", options: foundCommands, submitOnChange: true, multiple: false, required: false    
         input name: "selectedInput", type: "enum", title: "Input", options: foundCommands, submitOnChange: true, multiple: false, required: false              
-        input name: "selectedBack", type: "enum", title: "Back", options: foundCommands, submitOnChange: true, multiple: false, required: false  
+        input name: "selectedBack", type: "enum", title: "Back", options: foundCommands, submitOnChange: true, multiple: false, required: false
+        input name: "num0", type: "enum", title: "Number 0", options: foundCommands, submitOnChange: true, multiple: false, required: false  
+        input name: "num1", type: "enum", title: "Number 1", options: foundCommands, submitOnChange: true, multiple: false, required: false  
+        input name: "num2", type: "enum", title: "Number 2", options: foundCommands, submitOnChange: true, multiple: false, required: false  
+        input name: "num3", type: "enum", title: "Number 3", options: foundCommands, submitOnChange: true, multiple: false, required: false  
+        input name: "num4", type: "enum", title: "Number 4", options: foundCommands, submitOnChange: true, multiple: false, required: false  
+        input name: "num5", type: "enum", title: "Number 5", options: foundCommands, submitOnChange: true, multiple: false, required: false  
+        input name: "num6", type: "enum", title: "Number 6", options: foundCommands, submitOnChange: true, multiple: false, required: false  
+        input name: "num7", type: "enum", title: "Number 7", options: foundCommands, submitOnChange: true, multiple: false, required: false  
+        input name: "num8", type: "enum", title: "Number 8", options: foundCommands, submitOnChange: true, multiple: false, required: false  
+        input name: "num9", type: "enum", title: "Number 9", options: foundCommands, submitOnChange: true, multiple: false, required: false  
         input name: "custom1", type: "enum", title: "Custom1", options: foundCommands, submitOnChange: true, multiple: false, required: false  
         input name: "custom2", type: "enum", title: "Custom2", options: foundCommands, submitOnChange: true, multiple: false, required: false  
         input name: "custom3", type: "enum", title: "Custom3", options: foundCommands, submitOnChange: true, multiple: false, required: false  
@@ -414,6 +451,16 @@ def addTvDevice(foundCommands) {
     state.selectedCommands["home"] = selectedHome
     state.selectedCommands["input"] = selectedInput
     state.selectedCommands["back"] = selectedBack
+    state.selectedCommands["num0"] = num0
+    state.selectedCommands["num1"] = num1
+    state.selectedCommands["num2"] = num2
+    state.selectedCommands["num3"] = num3
+    state.selectedCommands["num4"] = num4  
+    state.selectedCommands["num5"] = num5
+    state.selectedCommands["num6"] = num6
+    state.selectedCommands["num7"] = num7
+    state.selectedCommands["num8"] = num8
+    state.selectedCommands["num9"] = num9  
     state.selectedCommands["custom1"] = custom1
     state.selectedCommands["custom2"] = custom2
     state.selectedCommands["custom3"] = custom3
