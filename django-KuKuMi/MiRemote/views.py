@@ -266,7 +266,7 @@ def send_cmd(request, dev, cmd):
         except:
             result = -1
 
-        if result == -1:
+        if result == 0:
             data = {
                 'result' : True,
                 'message' : 'Succeed to send command!!!'
