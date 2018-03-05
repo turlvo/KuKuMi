@@ -60,10 +60,10 @@ class Miio_api:
                     return m
 
                 if addr[0] not in seen_addrs:
-                    _LOGGER.info("  IP %s (ID: %s) - token: %s",
-                                 addr[0],
-                                 m.header.value.device_id.decode(),
-                                 codecs.encode(m.checksum, 'hex'))
+                    #_LOGGER.info("  IP %s (ID: %s) - token: %s",
+                    #             addr[0],
+                    #             m.header.value.device_id.decode(),
+                    #             codecs.encode(m.checksum, 'hex'))
                     dev = {"dev_ID": binascii.hexlify(m.header.value.device_id).decode(),
                            "ip": addr[0],
                            "token": codecs.encode(m.checksum, 'hex').decode()}
