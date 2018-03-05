@@ -5,8 +5,6 @@ import codecs
 import ipaddress
 import binascii
 
-from .device import Device
-
 logging.basicConfig(level=logging.DEBUG)
 _LOGGER = logging.getLogger(__name__)
 
