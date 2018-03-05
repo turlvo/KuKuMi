@@ -109,7 +109,7 @@
                 <option value="{{ item.name }}">{{ item.name  }}</option>
             {% endfor %}
         </select>
-
+        <br>
         <button class="btn btn-primary" type="button" id="id_btn_command_learn" data-exec-url="{% url 'learn_cmd' dev=device %}">
             Learn Command
         </button>
@@ -117,6 +117,7 @@
         <p id="id_txt_timer" style="overflow: hidden; text-overflow: ellipsis; width: 500px;"></p>
     {% endif %}
     </div>
+    <br>
     <br>
     <div class="container" id="id_from">
         <form method="POST" data-validate-value-url="{% url 'validate_command_value' %}">
