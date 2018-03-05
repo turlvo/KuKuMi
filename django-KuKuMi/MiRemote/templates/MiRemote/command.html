@@ -104,6 +104,7 @@
         <button type="button" id="id_btn_command_learn" data-exec-url="{% url 'learn_cmd' dev=device %}">
             Learn Command
         </button>
+        <button type="button" id="id_btn_send_command">Test Command</button>
     {% endif %}
     <div>
         <form method="POST" data-validate-value-url="{% url 'validate_command_value' %}">
@@ -117,8 +118,6 @@
                 <a href="{% url 'cmd_del' name=form.name.value %}">
                     <button type="button" class="btn btn-danger">Delete</button>
                 </a>
-            {% else %}
-                <button type="button" id="id_btn_send_command">Test Command</button>
             {% endif %}
         </form>
    </div>
