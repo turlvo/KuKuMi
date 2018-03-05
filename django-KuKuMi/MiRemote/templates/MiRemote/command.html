@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load staticfiles %}
 
 {% block title1 %}
     <h3>
@@ -7,6 +8,8 @@
 {% endblock title1 %}
 
 {% block javascript %}
+  <script src="{% static 'js/jquery.loading.js' %}"></script>
+  <link href="{% static 'js/jquery.loading.css' %}" rel="stylesheet">
   <script>
     $("#id_name").change(function () {
       var form = $(this).closest("form");
@@ -47,10 +50,13 @@
             var form = $(this).closest("form");
             $.ajax({
                 type: 'GET',
-                url: '/miremote/api/device/' + $('#selectedDevice').val() + '/learn_cmd ',
+                url: '/miremote/api/device/' + $('#selectedDevice').val() + '/learn_cmd',
                 dataType: 'json',
                 success: function (data) {
                     if (data.result) {
+                        $('body').loading({
+                            stoppable: false
+                        });
                         var txt_timer = document.getElementById("id_txt_timer");
                         txt_timer.innerHTML = data.message;
                         var count = 10;
@@ -61,13 +67,14 @@
                             if (count % 5 == 0) {
                                 $.ajax({
                                     type: "GET",
-                                    url: "{% url 'read_cmd' dev=device %}",
+                                    url: '/miremote/api/device/' + $('#selectedDevice').val() + '/read_cmd',
                                     dataType: 'json',
                                     success: function (data) {
                                         if (data.result) {
                                             clearInterval(timer);
                                             txt_timer.innerHTML = "The Code is copied~~~";
                                             document.getElementById('id_code').value = data.message;
+                                            $('body').loading('stop');
                                         }
                                     }
                                 });
@@ -76,6 +83,7 @@
                             if (count < 0) {
                                 clearInterval(timer);
                                 txt_timer.innerHTML = "Could not read learned command";
+                                $('body').loading('stop');
                             }
                         }, 1000);
                     }
@@ -94,33 +102,36 @@
         <a href="{% url 'index' %}">Goto List</a>
     </p>
 
+    <div class="container">
     {% if devices %}
-        <select id="selectedDevice">
+        <select class="form-control" id="selectedDevice">
             {% for item in devices %}
                 <option value="{{ item.name }}">{{ item.name  }}</option>
             {% endfor %}
         </select>
 
-        <button type="button" id="id_btn_command_learn" data-exec-url="{% url 'learn_cmd' dev=device %}">
+        <button class="btn btn-primary" type="button" id="id_btn_command_learn" data-exec-url="{% url 'learn_cmd' dev=device %}">
             Learn Command
         </button>
-        <button type="button" id="id_btn_send_command">Test Command</button>
+        <button class="btn btn-primary" type="button" id="id_btn_send_command">Test Command</button>
+        <p id="id_txt_timer" style="overflow: hidden; text-overflow: ellipsis; width: 500px;"></p>
     {% endif %}
-    <div>
+    </div>
+    <br>
+    <div class="container" id="id_from">
         <form method="POST" data-validate-value-url="{% url 'validate_command_value' %}">
             {% csrf_token %}
             <table class="table">
                 {{ form.as_table }}
             </table>
-            <button type="submit" id="btn_save">Save</button>
+            <button class="btn btn-primary" type="submit" id="btn_save">Save</button>
 
             {% if 'edit' in request.build_absolute_uri %}
                 <a href="{% url 'cmd_del' name=form.name.value %}">
-                    <button type="button" class="btn btn-danger">Delete</button>
+                    <button class="btn btn-primary" type="button" class="btn btn-danger">Delete</button>
                 </a>
             {% endif %}
         </form>
    </div>
-    <p id="id_txt_timer" style="overflow: hidden; text-overflow: ellipsis; width: 500px;"></p>
 
 {% endblock content1 %}

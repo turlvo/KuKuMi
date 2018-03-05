@@ -52,18 +52,21 @@
     <p>
         <a href="{% url 'index' %}">Goto List</a>
     </p>
-    {% if 'create' in request.build_absolute_uri %}
-        <button type="button" id="id_btn_discover" data-exec-url="{% url 'discover' %}">
-            Discover Device
-        </button>
-    {% endif %}
-    <div>
+    <div class="container">
+        {% if 'create' in request.build_absolute_uri %}
+            <button class="btn btn-primary" type="button" id="id_btn_discover" data-exec-url="{% url 'discover' %}">
+                Discover Device
+            </button>
+        {% endif %}
+    </div>
+    <br>
+    <div class="container">
         <form method="POST" data-validate-value-url="{% url 'validate_device_value' %}">
             {% csrf_token %}
             <table class="table">
                 {{ form.as_table }}
             </table>
-            <button type="submit">Save</button>
+            <button class="btn btn-primary" type="submit">Save</button>
 
             {% if 'edit' in request.build_absolute_uri %}
                 <a href="{% url 'dev_del' id=form.dev_ID.value %}">
