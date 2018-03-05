@@ -27,11 +27,27 @@
     });
 
     $(document).ready(function(){
+        $('#id_btn_send_command').on('click', function () {
+            var form = $(this).closest("form");
+            $.ajax({
+                type: 'POST',
+                data: {isTest : true},
+                url: '/miremote/api/device/' + $('#selectedDevice').val() + '/command/' + $("#id_code").val(),
+                dataType: 'json',
+                success: function (data) {
+                    if (data.result) {
+                    }
+                }
+            });
+        });
+    });
+
+    $(document).ready(function(){
         $('#id_btn_command_learn').on('click', function () {
             var form = $(this).closest("form");
             $.ajax({
                 type: 'GET',
-                url: $("#id_btn_command_learn").attr("data-exec-url"),
+                url: '/miremote/api/device/' + $('#selectedDevice').val() + '/learn_cmd ',
                 dataType: 'json',
                 success: function (data) {
                     if (data.result) {
@@ -78,9 +94,15 @@
         <a href="{% url 'index' %}">Goto List</a>
     </p>
 
-    {% if device %}
+    {% if devices %}
+        <select id="selectedDevice">
+            {% for item in devices %}
+                <option value="{{ item.name }}">{{ item.name  }}</option>
+            {% endfor %}
+        </select>
+
         <button type="button" id="id_btn_command_learn" data-exec-url="{% url 'learn_cmd' dev=device %}">
-            [{{ device}}] Learn Command
+            Learn Command
         </button>
     {% endif %}
     <div>
@@ -95,6 +117,8 @@
                 <a href="{% url 'cmd_del' name=form.name.value %}">
                     <button type="button" class="btn btn-danger">Delete</button>
                 </a>
+            {% else %}
+                <button type="button" id="id_btn_send_command">Test Command</button>
             {% endif %}
         </form>
    </div>

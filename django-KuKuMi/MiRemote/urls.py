@@ -22,6 +22,7 @@ urlpatterns = [
     url(r'^command/delete/(?P<name>.*)/$', views.cmd_del, name='cmd_del'),
 
     url(r'^ajax/validate_command_value/$', views.validate_command_value, name='validate_command_value'),
+    url(r'^ajax/validate_device_value/$', views.validate_device_value, name='validate_device_value'),
 
     url(r'^api/devices', views.dev_list, name='dev_list'),
     url(r'^api/commands', views.cmd_list, name='cmd_list'),

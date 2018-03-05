@@ -58,7 +58,7 @@
         </button>
     {% endif %}
     <div>
-        <form method="POST">
+        <form method="POST" data-validate-value-url="{% url 'validate_device_value' %}">
             {% csrf_token %}
             <table class="table">
                 {{ form.as_table }}

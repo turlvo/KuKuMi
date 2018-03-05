@@ -36,7 +36,8 @@ def dev_create(request):
 
 def cmd_create(request):
     try:
-        fd = Device.objects.all().first()
+        #fd = Device.objects.all().first()
+        fds = Device.objects.all()
     except Device.DoesNotExist:
         raise Http404("No Device matches the given query.")
 
@@ -48,7 +49,7 @@ def cmd_create(request):
     else:
         form = CommandForm()
 
-    return render(request, 'MiRemote/command.html', {'form': form, 'device': fd})
+    return render(request, 'MiRemote/command.html', {'form': form, 'devices': fds})
 
 
 def dev_edit(request, id):
@@ -113,6 +114,25 @@ def validate_command_value(request):
         'is_taken': False
     }
     if Command.objects.filter(name__iexact=name).exists() :
+        data = {
+            'is_taken': True,
+            'error_message' : 'A command with this command already exists.'
+        }
+    elif ' ' in name :
+        data = {
+            'is_taken': True,
+            'error_message' : 'A space is not permitted in command name.'
+        }
+
+    return JsonResponse(data)
+
+def validate_device_value(request):
+    name = request.GET.get('name', None)
+
+    data = {
+        'is_taken': False
+    }
+    if Device.objects.filter(name__iexact=name).exists() :
         data = {
             'is_taken': True,
             'error_message' : 'A command with this command already exists.'
@@ -216,29 +236,46 @@ def cmd_list(request):
         serializer = CommandSerializer(commands, many=True)
         return Response(serializer.data)
 
-@api_view(['POST', ])
+@api_view(['POST',])
 def send_cmd(request, dev, cmd):
-    logger.error("send_cmd>> device: %s, command: %s" % (dev, cmd))
+    is_test = json.loads(request.POST.get('isTest', 'false'))
+    logger.error("send_cmd>> device: %s, command: %s, test: %s" % (dev, cmd, is_test))
+
     if request.method == 'POST':
         try:
             fd = get_object_or_404(Device, name=dev)
+            target_ip = fd.ip
+            target_token = fd.token
             logger.error("send_cmd>> device >> name: %s, ip: %s, token: %s" % (fd.name, fd.ip, fd.token))
         except Device.DoesNotExist:
             raise Http404("No Device matches the given query.")
 
-        try:
-            fc = get_object_or_404(Command, name=cmd)
-            logger.error("send_cmd>> command >> name : %s, code: %s" % (fc.name, fc.code))
-        except Command.DoesNotExist:
-            raise Http404("No Command matches the given query.")
+        if is_test == True:
+            command_code = cmd
+        else:
+            try:
+                fc = get_object_or_404(Command, name=cmd)
+                command_code = fc.code
+                logger.error("send_cmd>> command >> name : %s, code: %s" % (fc.name, fc.code))
+            except Command.DoesNotExist:
+                    raise Http404("No Command matches the given query.")
 
         result = 0
         try:
-            result = Miio_api.send_command(fd.ip, fd.token, fc.code, 38400)
+            result = Miio_api.send_command(target_ip, target_token, command_code, 38400)
         except:
             result = -1
 
-        if result != 0:
-            return HttpResponse(status=500)
+        if result == -1:
+            data = {
+                'result' : True,
+                'message' : 'Succeed to send command!!!'
+            }
+            return JsonResponse(data)
         else :
-            return HttpResponse(status=204)
+            data = {
+                'result' : False,
+                'message' : 'Failed to send command...'
+            }
+        return JsonResponse(data)
+
