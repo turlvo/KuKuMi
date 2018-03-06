@@ -1,6 +1,7 @@
 # 'KuKu Mi' Install Guide
 
 'KuKu Mi' project consists of DTH and SmartApp and API server.
+
 It makes SmartThings to control Xiaomi product.
 (Currently supports Mi Remote only)
 
@@ -76,6 +77,7 @@ WantedBy=multi-user.target
 
 # 3. Installation of 'Mi Remote' DTH
 3-1) Add 'KuKu Mi' DTH in ST IDE
+
 3-2) Add a 'KuKu Mi' SmartApp in ST IDE
 
 https://github.com/turlvo/KuKuMi
