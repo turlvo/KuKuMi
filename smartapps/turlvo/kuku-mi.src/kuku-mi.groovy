@@ -141,8 +141,8 @@ def mainChildPage() {
         log.debug "mainChildPage>> parent's atomicState.MiApiServerIP: ${parent.getMiApiServerIP()}"
         atomicState.miApiServerIP = parent.getMiApiServerIP()
         
-		section("Xiaomi Device Type :") {                                                  
-			input name: "selectXiaomiDeviceType", type: "enum", title: "Select Xiaomi Device Type :", options: ["Mi Remote"], submitOnChange: true, required: true
+		section("Xiaomi Product Type :") {                                                  
+			input name: "selectXiaomiDeviceType", type: "enum", title: "Select Xiaomi Product Type :", options: ["Mi Remote"], submitOnChange: true, required: true
 			log.debug "mainChildPage>> selectXiaomiDeviceType: $selectXiaomiDeviceType"
 			if (selectXiaomiDeviceType) {
                 switch (selectXiaomiDeviceType) {
@@ -160,8 +160,8 @@ def mainChildPage() {
         def foundDevices = getDeviceNames(getDevices())
         log.debug "mainChildPage>> foundDevices : ${foundDevices}"
         if (selectXiaomiDeviceType && foundDevices) {
-            section("Xiaomi Device :") {                                
-                input name: "selectedDevice", type: "enum",  title: "Select Xiaomi Device", multiple: false, options: foundDevices, submitOnChange: true, required: true
+            section("Mi Remote Device :") {                                
+                input name: "selectedDevice", type: "enum",  title: "Select Mi Remote Device", multiple: false, options: foundDevices, submitOnChange: true, required: true
                 if (selectedDevice) {
                     atomicState.device = selectedDevice
                 }
