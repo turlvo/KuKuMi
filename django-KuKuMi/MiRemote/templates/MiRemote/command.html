@@ -48,15 +48,15 @@
     $(document).ready(function(){
         $('#id_btn_command_learn').on('click', function () {
             var form = $(this).closest("form");
+            $('body').loading({
+                stoppable: false
+            });
             $.ajax({
                 type: 'GET',
                 url: '/miremote/api/device/' + $('#selectedDevice').val() + '/learn_cmd',
                 dataType: 'json',
                 success: function (data) {
                     if (data.result) {
-                        $('body').loading({
-                            stoppable: false
-                        });
                         var txt_timer = document.getElementById("id_txt_timer");
                         txt_timer.innerHTML = data.message;
                         var count = 10;
