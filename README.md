@@ -78,7 +78,7 @@ WantedBy=multi-user.target
 <img src='https://cdn.rawgit.com/turlvo/KuKuMi/master/images/screenshots/webserver4-1.jpg' width=400>
 
 
-# 3. Installation of 'Mi Remote' DTH
+# 3. Installation of 'KuKu Mi' DTH and SmartApp at ST IDE
 3-1) Add 'KuKu Mi' DTH in ST IDE
 
 3-2) Add a 'KuKu Mi' SmartApp in ST IDE
@@ -92,7 +92,7 @@ GitHub Repository Integration
 ```
 
 
-# 4. Installation of 'KuKu Mi' SmartApp
+# 4. Installation of 'KuKu Mi' SmartApp at SmartThings Application
 4-1) Install 'KuKu Mi' SmartApp
 - 'Add a SmartApp' -> 'My SmartApp' -> select a 'KuKu Mi'
 
@@ -106,12 +106,15 @@ ex) 192.168.1.137:8484
 
 <img src='https://cdn.rawgit.com/turlvo/KuKuMi/master/images/screenshots/install2.jpg' width=400>
 
+
+
 4-2) Add a device at 'KuKu Mi' SmartApp
 - 'Automation' -> 'SmartApps' -> 'KuKu Mi'
 - 'Add a device...'
 - Enter 'Xiaomi Device Type'
 
 <img src='https://cdn.rawgit.com/turlvo/KuKuMi/master/images/screenshots/install3.jpg' width=400>
+
 
 
 - Select 'Mi Remote'
@@ -121,10 +124,13 @@ ex) 192.168.1.137:8484
 <img src='https://cdn.rawgit.com/turlvo/KuKuMi/master/images/screenshots/install4.jpg' width=400>
 
 
+
 - Enter 'device name' that you want
 - Enter 'DTH Type' and select DTH that you want to install
 
 <img src='https://cdn.rawgit.com/turlvo/KuKuMi/master/images/screenshots/install5.jpg' width=400>
+
+
 
 
 - Select to 'Next' to set up command
@@ -133,12 +139,15 @@ ex) 192.168.1.137:8484
 <img src='https://cdn.rawgit.com/turlvo/KuKuMi/master/images/screenshots/install6.jpg' width=400>
 
 
+
+
 - If you want synchronize device state by Plug and Contact Sensor,
 configure 'State Monitor' menu
 - To complete adding device, 'select 'Save' button
 - You can confirm added device
 
 <img src='https://cdn.rawgit.com/turlvo/KuKuMi/master/images/screenshots/install7.jpg' width=400>
+
 
 
 4-3) Installed Device Screenshot(Custom DTH)
