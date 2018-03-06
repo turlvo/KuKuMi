@@ -22,18 +22,19 @@ To use 'KuKu Mi', need below environments.
 # docker pull turlvo/kukumi
 ```
 
-1-2) Execute 'KuKu Mi' container 
+1-2) Execute 'KuKu Mi' API server by running container 
 
 ```
 # docker run --name=KuKuMi --net=host turlvo/kukumi
 ```
 
-1-3) Enable auto run 'KuKuTVNoti' when rebooted
+1-3) Enable auto run 'KuKu Mi' container when rebooted (Optional)
 
 ```
 # sudo vim /etc/systemd/system/kukumi.service
 
-<kukutvnoti.service File content>
+<kukumi.service File content>
+
 [Unit]
 Description=KuKuMi container
 Requires=docker.service
