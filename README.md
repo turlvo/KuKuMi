@@ -9,6 +9,7 @@ It makes SmartThings to control Xiaomi product.
 # 0. Preparing
 
 To use 'KuKu Mi', need below environments. 
+- Register 'Mi Remote' device at 'MiHome' application
 - 'Docker' system tool
 - NAS or Micro or Mini Server
  
@@ -21,6 +22,8 @@ To use 'KuKu Mi', need below environments.
 [X86 Platform]
 # docker pull turlvo/kukumi
 
+or
+
 [ARM Platform]
 # docker pull turlvo/kukumi-rasp
 ```
@@ -30,6 +33,8 @@ To use 'KuKu Mi', need below environments.
 ```
 [X86 Platform]
 # docker run --name=KuKuMi --net=host turlvo/kukumi
+
+or
 
 [ARM Platform]
 # docker run --name=KuKuMi --net=host turlvo/kukumi-rasp
