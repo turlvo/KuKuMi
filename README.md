@@ -10,7 +10,7 @@ It makes SmartThings to control Xiaomi product.
 
 To use 'KuKu Mi', need below environments. 
 - 'Docker' system tool
-- X86 Architecture server
+- NAS or Micro or Mini Server
  
 
 # 1. Install 'KuKu Mi' Daemon
@@ -18,14 +18,21 @@ To use 'KuKu Mi', need below environments.
 1-1) 'KuKu Mi' Docker Image download
 
 ```
-# docker search turlvo/kukumi
+[X86 Platform]
 # docker pull turlvo/kukumi
+
+[ARM Platform]
+# docker pull turlvo/kukumi-rasp
 ```
 
 1-2) Execute 'KuKu Mi' API server by running container 
 
 ```
+[X86 Platform]
 # docker run --name=KuKuMi --net=host turlvo/kukumi
+
+[ARM Platform]
+# docker run --name=KuKuMi --net=host turlvo/kukumi-rasp
 ```
 
 1-3) Enable auto run 'KuKu Mi' container when rebooted (Optional)
