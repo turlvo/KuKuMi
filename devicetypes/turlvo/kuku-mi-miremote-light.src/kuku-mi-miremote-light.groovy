@@ -26,6 +26,7 @@ metadata {
         capability "Refresh"
         capability "Sensor"
 
+		command "kukulight"
         command "lowLight"
         command "medLight"
         command "highLight"
@@ -65,8 +66,7 @@ metadata {
         //			state "off", label: 'Swing Mode', action: "swingMode", icon:"st.motion.motion.active", nextState:"on"
         //		}
         standardTile("sleepMode", "device.sleepMode", inactiveLabel: false, width: 2, height: 2, decoration: "flat", canChangeIcon: false, canChangeBackground: false) {
-            state "on", label:'Sleep On', action:"sleepMode", backgroundColor:"#79b821", icon: "st.Bedroom.bedroom11", nextState:"off"
-            state "off", label:'Sleep Off', action:"sleepMode", backgroundColor:"#ffffff", icon: "st.Bedroom.bedroom11", nextState:"on"
+            state "on", label:'Sleep Mode', action:"sleepMode", icon: "st.Bedroom.bedroom11", nextState:"off"
         }
         standardTile("time30", "device.timer", inactiveLabel: false, width: 2, height: 2, decoration: "flat", canChangeIcon: false, canChangeBackground: false) {
             state "time30", label: 'Timer 30min', action: "time30", icon:"st.Health & Wellness.health7"
@@ -106,38 +106,65 @@ def power() {
 }
 
 def lowLight() {
-    sendEvent(name: "switch", value: "on")    
+    def currentState = device.currentState("switch")?.value
+
+    if (currentState == "on") {
+    sendEvent(name: "level", value: 30)
     log.debug "child lowLight()"
     parent.command(this, "lowLight")
+	} else {
+    sendEvent(name: "switch", value: "on")    
+    sendEvent(name: "level", value: 30)
+    log.debug "child lowLight()"
+    parent.command(this, "lowLight")
+	}
 }
 
 def medLight() {
-    sendEvent(name: "switch", value: "on")
+def currentState = device.currentState("switch")?.value
+
+    if (currentState == "on") {
+    sendEvent(name: "level", value: 60)
     log.debug "child medLight()"
     parent.command(this, "medLight")
+	} else {
+    sendEvent(name: "switch", value: "on")
+    sendEvent(name: "level", value: 60)
+    log.debug "child medLight()"
+    parent.command(this, "medLight")	}
 }
 
 def highLight() {
+def currentState = device.currentState("switch")?.value
+
+    if (currentState == "on") {
+    sendEvent(name: "level", value: 100)
+    log.debug "child highLight()"
+    parent.command(this, "highLight")
+	} else {
     sendEvent(name: "switch", value: "on")
+    sendEvent(name: "level", value: 100)
     log.debug "child highLight()"
     parent.command(this, "highLight")
 }
+}
 
 def sleepMode() {
-    log.debug "child sleepMode()"
-    log.debug "sleepMode>> current: ${device.currentState("sleepMode")?.value}"
-    def currentState = device.currentState("sleepMode")?.value
+def currentState = device.currentState("switch")?.value
 
     if (currentState == "on") {
-        sendEvent(name: "sleepMode", value: "off")
-        log.debug "turn off sleepMode"
-        parent.command(this, "sleepModeOff")
-    } else {
-        sendEvent(name: "sleepMode", value: "on")
+	    sendEvent(name: "level", value: 10)        
         log.debug "turn of sleepMode"
         parent.command(this, "sleepModeOn")
-    }
-}
+	} else {
+	    sendEvent(name: "switch", value: "on")
+	    sendEvent(name: "level", value: 10)        
+        log.debug "turn of sleepMode"
+        parent.command(this, "sleepModeOn")
+
+	}
+  }
+
 
 def time30() {
     log.debug "child time30()"
@@ -150,9 +177,18 @@ def time60() {
 }
 
 def on() {
-    sendEvent(name: "switch", value: "on")
-    log.debug "child on()"
-    parent.command(this, "on")
+def currentState = device.currentState("switch")?.value
+
+    if (currentState == "on") {
+	    sendEvent(name: "level", value: 100)
+   		log.debug "child highLight()"
+	    parent.command(this, "highLight")
+	} else {
+	    sendEvent(name: "switch", value: "on")
+	    sendEvent(name: "level", value: 100)        
+   		log.debug "child highLight()"
+	    parent.command(this, "highLight")
+	}
 
     if (momentaryOn) {
         if (settings.momentaryOnDelay == null || settings.momentaryOnDelay == "" ) settings.momentaryOnDelay = 5
@@ -166,40 +202,79 @@ def momentaryOnHandler() {
     sendEvent(name: "switch", value: "off")
 }
 def off() {
-    sendEvent(name: "switch", value: "off")
-    log.debug "child off"
-    parent.command(this, "off")
+
+
+def currentState = device.currentState("switch")?.value
+
+    if (currentState == "on") {
+	    sendEvent(name: "switch", value: "off")
+	    sendEvent(name: "level", value: 0)
+	    log.debug "child off"
+	    parent.command(this, "off")
+	} else {
+	    sendEvent(name: "switch", value: "off")
+	    sendEvent(name: "level", value: 0)
+	    log.debug "child off"
+	}
 }
+
 
 def setLevel(level) {
-    if(level <= 100 && level >= 75) {
-        sendEvent(name: "switch", value: "on")
-        sendEvent(name: "level", value: 90)
+    def currentState = device.currentState("switch")?.value
+
+    if (currentState == "on") {
+if(level <= 100 && level >= 75) {
         log.debug "child highLight()"
+        sendEvent(name: "level", value: 100)
         parent.command(this, "highLight")
     } else if(level < 75 && level >= 50) {
-        sendEvent(name: "switch", value: "on")
-        sendEvent(name: "level", value: 50)
         log.debug "child medLight()"
+        sendEvent(name: "level", value: 60)
         parent.command(this, "medLight")
     } else if(level < 50 && level >= 25) {
-        sendEvent(name: "switch", value: "on")
-        sendEvent(name: "level", value: 25)
         log.debug "child lowLight()"
+        sendEvent(name: "level", value: 30)
         parent.command(this, "lowLight")
     } else if(level < 25 && level >= 1) {
-        sendEvent(name: "sleepMode", value: "on")
-        sendEvent(name: "level", value: 10)            
         log.debug "child sleepMode()"
-        parent.command(this, "sleepMode")
+        sendEvent(name: "level", value: 10)
+        parent.command(this, "sleepModeOn")
     } else {
-        sendEvent(name: "switch", value: "off")
-        sendEvent(name: "level", value: 0)
         log.debug "child off"
+  	  	sendEvent(name: "switch", value: "off")
+    	sendEvent(name: "level", value: 0)    
+	    sendEvent(name: "sleepMode", value: "off")
         parent.command(this, "off")
-    }
-
+    }    
+  } else {
+if(level <= 100 && level >= 75) {
+        log.debug "child highLight()"
+        sendEvent(name: "switch", value: "on")
+        sendEvent(name: "level", value: 100)
+        parent.command(this, "highLight")
+    } else if(level < 75 && level >= 50) {
+        log.debug "child medLight()"
+        sendEvent(name: "switch", value: "on")
+        sendEvent(name: "level", value: 60)
+        parent.command(this, "medLight")
+    } else if(level < 50 && level >= 25) {
+        log.debug "child lowLight()"
+        sendEvent(name: "switch", value: "on")
+        sendEvent(name: "level", value: 30)
+        parent.command(this, "lowLight")
+    } else if(level < 25 && level >= 1) {
+        log.debug "child sleepMode()"
+        sendEvent(name: "switch", value: "on")
+        sendEvent(name: "level", value: 10)
+        parent.command(this, "sleepModeOn")
+    } else {
+        log.debug "child off"
+  	  	sendEvent(name: "switch", value: "off")
+    	sendEvent(name: "level", value: 0)    
+    }    
 }
+}
+
 
 def virtualOn() {
     log.debug "child on()"	

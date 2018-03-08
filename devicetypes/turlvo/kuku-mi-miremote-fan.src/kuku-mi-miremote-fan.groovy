@@ -26,13 +26,12 @@ metadata {
 		capability "Refresh"
 		capability "Sensor"
 
+		command "kukufan"
 		command "lowSpeed"
 		command "medSpeed"
 		command "highSpeed"
 		command "swingMode"
 		command "sleepMode"
-		command "sleepoff"
-		command "sleepon"
 		command "timer"
 
 	}
@@ -62,12 +61,13 @@ metadata {
 			state "HIGH", label: 'HIGH', action: "highSpeed", icon:"st.quirky.spotter.quirky-spotter-luminance-bright"
 		}
 		standardTile("swingMode", "device.swingMode", inactiveLabel: false, width: 2, height: 2, decoration: "flat", canChangeIcon: false, canChangeBackground: false) {
-			state "on", label: 'Swing On', action: "swingMode", backgroundColor:"#79b821", icon:"st.motion.motion.active", nextState:"off"
-			state "off", label: 'Swing Off', action: "swingMode", backgroundColor:"#ffffff", icon:"st.motion.motion.active", nextState:"on"
+			state "on", label: 'Swing', action: "swingMode", backgroundColor:"#79b821", icon:"st.motion.motion.active"
+			state "off", label: 'off', action: "swingMode", backgroundColor:"#ffffff", icon:"st.motion.motion.active"
 		}
 		standardTile("sleepMode", "device.sleepMode", inactiveLabel: false, width: 2, height: 2, decoration: "flat", canChangeIcon: false, canChangeBackground: false) {
-			state "on", label:'Sleep', action:"sleepMode", backgroundColor:"#79b821", icon: "st.Outdoor.outdoor19", nextState:"off"
-			state "off", label:'Natural', action:"sleepMode", backgroundColor:"#ffffff", icon: "st.Outdoor.outdoor19", nextState:"on"
+			state "on", label:'Natural', action:"sleepMode", backgroundColor:"#79b821", icon: "st.Outdoor.outdoor19", nextState:"off"
+			state "on1", label:'Sleep', action:"sleepMode", backgroundColor:"#79b821", icon: "st.Bedroom.bedroom2", nextState:"off"
+			state "off", label:'off', action:"sleepMode", backgroundColor:"#ffffff", icon: "st.Appliances.appliances11", nextState:"on"
 		}
 		standardTile("timer", "device.timer", inactiveLabel: false, width: 2, height: 2, decoration: "flat", canChangeIcon: false, canChangeBackground: false) {
 			state "timer", label: 'Set time', action: "timer", icon:"st.Health & Wellness.health7"
@@ -75,6 +75,8 @@ metadata {
 		controlTile("levelSliderControl", "device.level", "slider", height: 1, width: 2) {
 			state "level", action:"switch level.setLevel"
 		}
+
+
 		main(["switch"])
 		details(["switch", "lowSpeed", "medSpeed", "highSpeed", "swingMode", "sleepMode", "timer"])
 	}
@@ -104,21 +106,48 @@ def power() {
 }
 
 def lowSpeed() {
-    sendEvent(name: "switch", value: "on")    
+    def currentState = device.currentState("switch")?.value
+
+    if (currentState == "on") {
     log.debug "child lowSpeed()"
     parent.command(this, "lowSpeed")
+    sendEvent(name: "level", value: 30)        
+    } else {
+    parent.command(this, "on")    
+    sendEvent(name: "switch", value: "on")
+    log.debug "child lowSpeed()"
+    sendEvent(name: "level", value: 30)    
+    }
 }
 
 def medSpeed() {
-    sendEvent(name: "switch", value: "on")
+    def currentState = device.currentState("switch")?.value
+
+    if (currentState == "on") {
     log.debug "child medSpeed()"
     parent.command(this, "medSpeed")
+    sendEvent(name: "level", value: 60)        
+    } else {
+    parent.command(this, "on")    
+    sendEvent(name: "switch", value: "on")
+    log.debug "child medSpeed()"
+    sendEvent(name: "level", value: 60)    
+    }
 }
 
 def highSpeed() {
-    sendEvent(name: "switch", value: "on")
+    def currentState = device.currentState("switch")?.value
+
+    if (currentState == "on") {
     log.debug "child highSpeed()"
     parent.command(this, "highSpeed")
+    sendEvent(name: "level", value: 100)        
+    } else {
+    parent.command(this, "on")    
+    sendEvent(name: "switch", value: "on")
+    log.debug "child highSpeed()"
+    sendEvent(name: "level", value: 90)    
+    }
 }
 
 def swingMode() {
@@ -143,13 +172,17 @@ def sleepMode() {
     def currentState = device.currentState("sleepMode")?.value
 
     if (currentState == "on") {
+        sendEvent(name: "sleepMode", value: "on1")
+        log.debug "turn off sleepMode"
+        parent.command(this, "sleepModeOff")
+    } else if (currentState == "on1") {
         sendEvent(name: "sleepMode", value: "off")
         log.debug "turn off sleepMode"
         parent.command(this, "sleepModeOff")
-    } else {
+    } else if (currentState == "off") {
         sendEvent(name: "sleepMode", value: "on")
-        log.debug "turn of sleepMode"
-        parent.command(this, "sleepModeOn")
+        log.debug "turn off sleepMode"
+        parent.command(this, "sleepModeOff")
     }
 }
 
@@ -159,9 +192,17 @@ def timer() {
 }
 
 def on() {
-    sendEvent(name: "switch", value: "on")
-	log.debug "child on()"
-	parent.command(this, "on")
+def currentState = device.currentState("switch")?.value
+
+    if (currentState == "on") {
+	    sendEvent(name: "level", value: 100)
+   		log.debug "child on()"
+	} else {
+	    sendEvent(name: "switch", value: "on")
+	    sendEvent(name: "level", value: 30)        
+   		log.debug "child on()"
+	    parent.command(this, "on")
+	}
     
 	if (momentaryOn) {
     	if (settings.momentaryOnDelay == null || settings.momentaryOnDelay == "" ) settings.momentaryOnDelay = 5
@@ -176,45 +217,69 @@ def momentaryOnHandler() {
 }
 
 def off() {
-    sendEvent(name: "switch", value: "off")
-	log.debug "child off"
-	parent.command(this, "off")
+def currentState = device.currentState("switch")?.value
+
+    if (currentState == "on") {
+		log.debug "child off"
+		parent.command(this, "off")
+	    sendEvent(name: "switch", value: "off")
+	    sendEvent(name: "level", value: 0)    
+	    sendEvent(name: "sleepMode", value: "off")
+	} else {
+	    sendEvent(name: "switch", value: "off")
+	    sendEvent(name: "level", value: 0)        
+   		log.debug "child off()"
+	}
 }
 
 def setLevel(level) {
-    if(level == 100) {
-        log.debug "child on"
-        parent.command(this, "on")
-        sendEvent(name: "switch", value: "on")
-        sendEvent(name: "level", value: 100)
-    } else if(level < 100 && level >= 75) {
+    def currentState = device.currentState("switch")?.value
+
+    if (currentState == "on") {
+if(level <= 100 && level >= 75) {
         log.debug "child highSpeed()"
-        parent.command(this, "highSpeed")
-        sendEvent(name: "switch", value: "on")
         sendEvent(name: "level", value: 90)
+        parent.command(this, "highSpeed")
     } else if(level < 75 && level >= 50) {
         log.debug "child medSpeed()"
-        parent.command(this, "medSpeed")
-        sendEvent(name: "switch", value: "on")
         sendEvent(name: "level", value: 60)
+        parent.command(this, "medSpeed")
     } else if(level < 50 && level >= 25) {
         log.debug "child lowSpeed()"
+        sendEvent(name: "level", value: 30)
         parent.command(this, "lowSpeed")
-        sendEvent(name: "switch", value: "on")
-        sendEvent(name: "level", value: 35)
     } else if(level < 25 && level >= 1) {
         log.debug "child sleepMode()"
         sendEvent(name: "sleepMode", value: "on")
+        sendEvent(name: "level", value: 10)
         parent.command(this, "sleepMode")
-    } else(level < 1) {
+    } else {
         log.debug "child off"
         parent.command(this, "off")
+  	  	sendEvent(name: "switch", value: "off")
+    	sendEvent(name: "level", value: 0)    
+	    sendEvent(name: "sleepMode", value: "off")
+    }    
+  } else {
+		if(level <= 100 && level >= 30) {
+		parent.command(this, "on")
+        sendEvent(name: "switch", value: "on")
+        sendEvent(name: "level", value: 30)
+    } else if(level < 25 && level >= 1) {
+        log.debug "child sleepMode()"
+		parent.command(this, "on")
+        sendEvent(name: "switch", value: "on")
+        parent.command(this, "sleepMode")
+        sendEvent(name: "sleepMode", value: "on")
+    } else {
+        log.debug "child off"
         sendEvent(name: "switch", value: "off")
         sendEvent(name: "level", value: 0)
+	    sendEvent(name: "sleepMode", value: "off")
     }
 
 }
-
+}
 def virtualOn() {
 	log.debug "child on()"	
     sendEvent(name: "switch", value: "on")
