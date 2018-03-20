@@ -32,6 +32,8 @@ ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
     'MiRemote.apps.MiremoteConfig',
+    'YeeBT.apps.YeebtConfig',
+    'XiaomiBT.apps.XiaomibtConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

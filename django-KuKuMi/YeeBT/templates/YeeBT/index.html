@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block main_title %}
+    <h2>
+        YeeLight BT Setting
+    </h2>
+{% endblock main_title %}
+
+{% block title1 %}
+    <h3>
+        <!--<img src="{% static 'images/note.jpg' %}" style="width:50px" />-->
+        Device List
+    </h3>
+{% endblock title1 %}
+
+{% block content1 %}
+    <p>
+        <a href="{% url 'btdev_create' %}">+ Create New Device</a>
+    </p>
+
+    <table class="table">
+        <tr><th>Device Name</th><th>MAC address</th></tr>
+        {% for item in devices %}
+            <tr>
+                <td>
+                    <a href="{% url 'btdev_edit' name=item.name %}">{{ item.name }}</a>
+                </td>
+                <td>{{ item.mac }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+{% endblock content1 %}
+

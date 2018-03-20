@@ -18,5 +18,7 @@ from django.contrib import admin
 
 urlpatterns = [
     path('miremote/', include('MiRemote.urls')),
+    path('yeebt/', include('YeeBT.urls')),
+    path('xiaomibt/', include('XiaomiBT.urls')),
     path('admin/', admin.site.urls),
 ]
