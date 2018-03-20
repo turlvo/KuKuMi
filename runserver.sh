@@ -7,7 +7,7 @@ echo ""
 
 echo "Running XiaomiBT daemon..."
 cd /root/KuKuMi/xiaomibt-daemon
-python xiaomibt-daemon start
+python xiaomibt-daemon.py start
 
 echo ""
 
