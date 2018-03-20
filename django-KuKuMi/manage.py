@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 import os
 import sys
-import subprocess
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'ext'))
 if __name__ == "__main__":
@@ -21,5 +20,4 @@ if __name__ == "__main__":
                 "forget to activate a virtual environment?"
             )
         raise
-    p = subprocess.Popen(["python", "/root/KuKuMi/xiaomibt-daemon.py", "start"], stdout=subprocess.PIPE)
     execute_from_command_line(sys.argv)
