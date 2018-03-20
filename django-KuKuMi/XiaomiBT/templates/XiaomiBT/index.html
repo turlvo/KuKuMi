@@ -41,6 +41,11 @@
 
 {% block content1 %}
     <div class="container">
+        <a href="{% url 'xiaomibtstartdaemon' %}">
+            <button class="btn btn-primary" type="button" id="id_btn_startserver">
+                Start Xiaomi BT Daemon
+            </button>
+        </a>
         <button class="btn btn-primary" type="button" id="id_btn_discover" data-exec-url="{% url 'xiaomibtinterface' %}">
             Show Bluetooth Interfaces
         </button>

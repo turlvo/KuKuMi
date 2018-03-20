@@ -121,11 +121,11 @@ def interface(request):
         result = discover_bluetooth_interface()
     except:
         result = -1
-    logger.error("discover>> result : %s" % (result))
+    logger.error("interface>> result : %s" % (result))
     if result == -1:
         data = {
             'result': False,
-            'message': 'Discovering is failed'
+            'message': 'interface is failed'
         }
         return JsonResponse(data)
     else:
@@ -134,6 +134,27 @@ def interface(request):
             'message': result
         }
     return JsonResponse(data)
+
+def start_daemon(request):
+    result = -1
+    try:
+        result = send_start_to_daemon()
+    except:
+        result = -1
+    logger.error("start_daemon>> result : %s" % (result))
+    if result == -1:
+        data = {
+            'result': False,
+            'message': 'start_daemon is failed'
+        }
+        return JsonResponse(data)
+    else:
+        data = {
+            'result': True,
+            'message': result
+        }
+    return JsonResponse(data)
+
 
 @api_view(['GET', ])
 def dev_list(request):
@@ -200,6 +221,10 @@ def send_scan_to_daemon():
             print (output.strip())
     """
     return (p.communicate()[0]).decode('utf-8')
+
+def send_start_to_daemon():
+    p = subprocess.Popen(["python", "/root/KuKuMi/xiaomibt-daemon/xiaomibt-daemon.py", "restart"], stdout=subprocess.PIPE)
+    return (p.communicate())
 
 def discover_bluetooth_interface():
     p1 = subprocess.Popen(["hciconfig"], stdout=subprocess.PIPE)

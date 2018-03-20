@@ -19,5 +19,6 @@ urlpatterns = [
     url(r'^api/devices', views.dev_list, name='xiaomibtdev_list'),
     url(r'^api/device/discover', views.discover, name='xiaomibtdiscover'),
     url(r'^api/interfaces', views.interface, name='xiaomibtinterface'),
+    url(r'^api/start_daemon', views.start_daemon, name='xiaomibtstartdaemon'),
     url(r'^api/device/(?P<dev>.*)/command/(?P<cmd>.*)', views.send_cmd, name='xiaomibtsend_cmd'),
 ]
