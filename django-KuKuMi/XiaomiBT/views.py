@@ -25,8 +25,8 @@ def index(request):
         XiaomiBT.objects.all().delete()
         if form.is_valid():
             form.save()
+            xiaomi_setting = XiaomiBT.objects.all().first()
             send_option_to_daemon(xiaomi_setting.ip, xiaomi_setting.iface, xiaomi_setting.threshold)
-            send_scan_to_daemon()
 
         return redirect('/xiaomibt')
     else:
