@@ -18,7 +18,7 @@
  */
 
 metadata {
-	definition (name: "KuKu Mi_miremote_Aircon", namespace: "turlvo", author: "KuKu") {
+	definition (name: "KuKu Mi_MiRemote_Aircon", namespace: "turlvo", author: "KuKu") {
         capability "Actuator"
 		capability "Switch"
 		capability "Refresh"
