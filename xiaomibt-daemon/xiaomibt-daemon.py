@@ -7,11 +7,19 @@ import os.path
 import requests, json
 
 
-CONST_ADVERTISEMENT_FIELD = ("UUID", "Flag", "ID", "Index", "MAC", "DataType", "Length", "Temperature", "Humidity")
+CONST_ADV_TEMPERATURE_FIELD = ("UUID", "Flag", "ID", "Index", "MAC", "DataType", "Length", "Temperature")
+CONST_ADV_HUMIDITY_FIELD = ("UUID", "Flag", "ID", "Index", "MAC", "DataType", "Length", "Humidity")
+CONST_ADV_BATTERY_FIELD = ("UUID", "Flag", "ID", "Index", "MAC", "DataType", "Length", "Battery")
+CONST_ADV_TEMPERATURE_AND_HUMIDITY_FIELD = ("UUID", "Flag", "ID", "Index", "MAC", "DataType", "Length", "Temperature", "Humidity")
 CONST_CONFIG_HUB_ADDRESS_FILE = '/tmp/xiaomibt-daemon.hubaddr'
 CONST_CONFIG_IFACE_FILE = '/tmp/xiaomibt-daemon.iface'
 CONST_CONFIG_THRESHOLD_FILE = '/tmp/xiaomibt-daemon.threshold'
 CONST_CONFIG_SCAN_RESULT_FILE = '/tmp/xiaomibt-daemon.scanresult'
+
+CONST_TEMPERATURE_EVENT = 4100
+CONST_HUMIDITY_EVENT = 4102
+CONST_BATTERY_EVENT = 4106
+CONST_TEMPERATURE_AND_HUMIDITY_EVENT = 4109
 
 class Global(object):
     before_temperature = {}
@@ -106,39 +114,71 @@ class ScanDelegate(DefaultDelegate):
         DefaultDelegate.__init__(self)
 
     def handleDiscovery(self, dev, isNewDev, isNewData):
-        if isNewData:
+        if isNewData and None != self.hub_address:
             adv_data = dev.getValueText(0x16)
-            if None != adv_data and len(adv_data) == 40:
-                #print ("Received new data from, %s, %s" % (dev.addr, adv_data))
+            if None != adv_data and -1 != adv_data.find('95fe'):
+                print ("\n\nReceived new data from, %s, %s" % (dev.addr, adv_data))
+                len_data = len(adv_data)
+                if len_data == 40:
+                    ba_adv_data = bytearray.fromhex(adv_data)
+                    st_adv_data = struct.unpack('<HHHB6sHBHH', ba_adv_data)
+                    dic_adv_data = dict(zip(CONST_ADV_TEMPERATURE_AND_HUMIDITY_FIELD, st_adv_data))
 
-                ba_adv_data = bytearray.fromhex(adv_data)
-                st_adv_data = struct.unpack('<HHHB6sHBHH', ba_adv_data)
-                dic_adv_data = dict(zip(CONST_ADVERTISEMENT_FIELD, st_adv_data))
-
-                if None != self.hub_address:
-                    #temp_before = self.before_temperature.get(dev.addr, 0.0)
-                   # humi_before = self.before_humidity.get(dev.addr, 0.0)
                     temp_before = Global.before_temperature.get(dev.addr, 0.0)
                     humi_before = Global.before_humidity.get(dev.addr, 0.0)
                     temp_current = float(dic_adv_data["Temperature"]) / 10
                     humi_current = float(dic_adv_data["Humidity"]) / 10
                     #dic_adv_data["MAC"] = dev.addr
-                    print ("\n\nDevice: %s\nBefore>> Temp: %f, Humi: %f / After>> Temp: %f, Humi: %F" % (dev.addr, temp_before, humi_before, temp_current, humi_current))
+                    print ("Device: %s\nBefore>> Temp: %f, Humi: %f / After>> Temp: %f, Humi: %F" % (dev.addr, temp_before, humi_before, temp_current, humi_current))
                     print ("Diff>> Temp: %f, Humi: %f" % ( abs(temp_current - temp_before), abs(humi_current - humi_before)))
-                    if abs(temp_current - temp_before) > self.threshold or abs(humi_current - humi_before) > self.threshold :
-                        print("Report~~~to : %s" % (self.hub_address))
-                        header = {'Content-Type': 'application/json; charset=utf-8'}
-                        #data = {'mac': dic_adv_data["MAC"], 'temperature': dic_adv_data["Temperature"], 'humidity': dic_adv_data["Humidity"]}
-                        data = {'device': 'xiaomibt', 'mac': dev.addr, 'temperature': temp_current, 'humidity':humi_current}
-                        url = 'http://' + self.hub_address + ':39500/xiaomibt/event'
-                        requests.post(url, headers=header, data=json.dumps(data))
-                    #self.before_temperature[dev.addr] = temp_current
-                    #self.before_humidity[dev.addr] = humi_current
+                    if abs(temp_current - temp_before) >= self.threshold or abs(humi_current - humi_before) >= self.threshold :
+                        self.report_value(CONST_TEMPERATURE_AND_HUMIDITY_EVENT, dev.addr, temp_current, humi_current)
                     Global.before_temperature[dev.addr] = temp_current
                     Global.before_humidity[dev.addr] = humi_current
-                else:
-                    print ("hub address is None. So pass to report!!!")
-            
+                elif len_data == 36:
+                    ba_adv_data = bytearray.fromhex(adv_data)
+                    st_adv_data = struct.unpack('<HHHB6sHBH', ba_adv_data)
+                    dic_adv_data = {}
+                    before = 0.0
+                    current = 0.0
+                    if int(st_adv_data[5]) == CONST_TEMPERATURE_EVENT:
+                        dic_adv_data = dict(zip(CONST_ADV_TEMPERATURE_FIELD, st_adv_data))
+                        before = Global.before_temperature.get(dev.addr, 0.0)
+                        current = float(dic_adv_data["Temperature"]) / 10
+                        print ("Device: %s\nBefore>> Temp: %f / After>> Temp: %f" % (dev.addr, before, current))
+                        print ("Diff>> Temp: %f" % (abs(current - before)))
+                        if abs(current - before) >= self.threshold :
+                            self.report_value(CONST_TEMPERATURE_EVENT, dev.addr, temp=current)
+                        Global.before_temperature[dev.addr] = current
+                    elif int(st_adv_data[5]) == CONST_HUMIDITY_EVENT:
+                        dic_adv_data = dict(zip(CONST_ADV_HUMIDITY_FIELD, st_adv_data))
+                        before = Global.before_humidity.get(dev.addr, 0.0)
+                        current = float(dic_adv_data["Humidity"]) / 10
+                        print ("Device: %s\nBefore>> Humi: %f / After>> Humi: %f" % (dev.addr, before, current))
+                        print ("Diff>> Humi: %f" % (abs(current - before)))
+                        if abs(current - before) >= self.threshold :
+                            self.report_value(CONST_HUMIDITY_EVENT, dev.addr, humi=current)
+                        Global.before_humidity[dev.addr] = current
+                elif len_data == 34:
+                    ba_adv_data = bytearray.fromhex(adv_data)
+                    st_adv_data = struct.unpack('<HHHB6sHBB', ba_adv_data)
+                    dic_adv_data = dict(zip(CONST_ADV_BATTERY_FIELD, st_adv_data))
+                    self.report_value(CONST_BATTERY_EVENT, dev.addr, battery=dic_adv_data["Battery"])
+
+    def report_value(self, report_type, mac, temp=0.0, humi=0.0, battery=0):
+        header = {'Content-Type': 'application/json; charset=utf-8'}
+        url = 'http://' + self.hub_address + ':39500/xiaomibt/event'
+
+        if report_type == CONST_TEMPERATURE_EVENT:
+            data = {'device': 'xiaomibt', 'report_type': 'temperatureChange', 'mac': mac, 'temperature': temp}
+        elif report_type == CONST_HUMIDITY_EVENT:
+            data = {'device': 'xiaomibt', 'report_type': 'humidityChange', 'mac': mac, 'humidity': humi}
+        elif report_type == CONST_BATTERY_EVENT:
+            data = {'device': 'xiaomibt', 'report_type': 'batteryChange', 'mac': mac, 'battery': battery}
+        elif report_type == CONST_TEMPERATURE_AND_HUMIDITY_EVENT:
+            data = {'device': 'xiaomibt', 'report_type': 'temperatureAndHumidityChange', 'mac': mac, 'temperature': temp, 'humidity': humi}
+        print ("report_value >> %s" % (data))
+        requests.post(url, headers=header, data=json.dumps(data))
 
 if __name__ == "__main__":
     #dev = XiaomiBT(1, 0.1)
