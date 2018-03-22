@@ -178,7 +178,10 @@ class ScanDelegate(DefaultDelegate):
         elif report_type == CONST_TEMPERATURE_AND_HUMIDITY_EVENT:
             data = {'device': 'xiaomibt', 'report_type': 'temperatureAndHumidityChange', 'mac': mac, 'temperature': temp, 'humidity': humi}
         print ("report_value >> %s" % (data))
-        requests.post(url, headers=header, data=json.dumps(data))
+        try:
+            requests.post(url, headers=header, data=json.dumps(data))
+        except requests.exceptions.ConnectionErrori as error:
+            print ('Error in report_value %s' % str(error))
 
 if __name__ == "__main__":
     #dev = XiaomiBT(1, 0.1)
