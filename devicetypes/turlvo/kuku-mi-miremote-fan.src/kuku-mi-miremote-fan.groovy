@@ -17,7 +17,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 metadata {
-	definition (name: "KuKu Mi_miremote_Fan", namespace: "turlvo", author: "KuKu") {
+	definition (name: "KuKu Mi_MiRemote_Fan", namespace: "turlvo", author: "KuKu") {
 		capability "Switch Level"
 		capability "Actuator"
 		capability "Indicator"

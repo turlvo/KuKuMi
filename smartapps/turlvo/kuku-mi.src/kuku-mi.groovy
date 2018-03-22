@@ -17,14 +17,15 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  *  Version history
- */
+*/
 def version() {	return "v1.1.600" }
 /*
  *  02/21/2018 >>> v1.0.000 - Release first 'KuKu Mi' SmartApp supporting 'Mi Remote'
  *  02/25/2018 >>> v1.1.000 - Added DTH Type and Device Name system 
  *  03/01/2018 >>> v1.1.500 - Modified 'Fan' DTH and added 'Light' DTH by ShinJjang
  *  03/01/2018 >>> v1.1.600 - Modified 'Aircon' and 'TV' DTH's number command routine
- */
+ *  03/21/2018 >>> v1.2.000 - Supports 'Xiaomi Mijia Bluetooth Temperature and Humidity' sensor
+*/
 
 definition(
     name: "KuKu Mi${parent ? " - Device" : ""}",
@@ -39,19 +40,19 @@ definition(
     iconX3Url: "https://cdn.rawgit.com/turlvo/KuKuMi/master/images/icon/KuKu_Mi_Icon_3x.png")
 
 preferences {
-	page(name: "parentOrChildPage")
-    
+    page(name: "parentOrChildPage")
+
     page(name: "mainPage")
     page(name: "installPage")
     page(name: "mainChildPage")
     page(name: "mainChildPageNext")
-    
+
 }
 
 // ------------------------------
 // Pages related to Parent
 def parentOrChildPage() {
-	parent ? mainChildPage() : mainPage()
+    parent ? mainChildPage() : mainPage()
 }
 
 // mainPage
@@ -60,8 +61,8 @@ def mainPage() {
     if (!atomicState?.isInstalled) {
         return installPage()
     } else {
-    	def interval
-    	//checkServer(atomicState.miApiServerIP)
+        def interval
+        //checkServer(atomicState.miApiServerIP)
         if (atomicState.serverStatus) {
             interval = 60
         } else {
@@ -70,20 +71,20 @@ def mainPage() {
         return dynamicPage(name: "mainPage", title: "", uninstall: true, refreshInterval: interval) {
             //getHubStatus()            
             section("KuKu Mi api Server IP Address :") {
-            	href "installPage", title: "", description: "${atomicState.miApiServerIP}"
+                href "installPage", title: "", description: "${atomicState.miApiServerIP}"
             }
-            
+
             // Tdo : temp enable
-			if (atomicState.serverStatus == true) {
-				//checkServer(atomicState.miApiServerIP)
-				section() {            
-					paragraph "Checking Mi API Server.  Please wait..."
-				}
-			} else {
-				section("") {
-					app( name: "MiDevices", title: "Add a device...", appName: "KuKu Mi", namespace: "turlvo", multiple: true, uninstall: false)
-				}
-			}
+            if (atomicState.serverStatus == true) {
+                //checkServer(atomicState.miApiServerIP)
+                section() {            
+                    paragraph "Checking Mi API Server.  Please wait..."
+                }
+            } else {
+                section("") {
+                    app( name: "MiDevices", title: "Add a device...", appName: "KuKu Mi", namespace: "turlvo", multiple: true, uninstall: false)
+                }
+            }
 
             section("Dashboard") {
                 href(name: "hrefNotRequired",
@@ -102,19 +103,19 @@ def mainPage() {
 }
 
 def installPage() {
-	dynamicPage(name: "installPage", title: "", install: !atomicState.isInstalled) {
-            section("Enter the KuKu Mi API Server IP address :") {
-       	       input name: "miApiIP", type: "text", required: true, title: "IP address(default 8484 port)?", submitOnChange: true
+    dynamicPage(name: "installPage", title: "", install: !atomicState.isInstalled) {
+        section("Enter the KuKu Mi API Server IP address :") {
+            input name: "miApiIP", type: "text", required: true, title: "IP address(default 8484 port)?", submitOnChange: true
+        }
+
+        if (miApiIP) {
+            if (miApiIP.contains(":")) {
+                atomicState.miApiServerIP = miApiIP
+            } else {
+                atomicState.miApiServerIP = miApiIP + ":8484"
             }
-            
-            if (miApiIP) {
-            	if (miApiIP.contains(":")) {
-            		atomicState.miApiServerIP = miApiIP
-                } else {
-                	atomicState.miApiServerIP = miApiIP + ":8484"
-                }
-                log.debug "installPage>> miApiServerIP : ${atomicState.miApiServerIP}"
-            }
+            log.debug "installPage>> miApiServerIP : ${atomicState.miApiServerIP}"
+        }
     } 	    
 }
 
@@ -122,107 +123,159 @@ def initializeParent() {
     atomicState.isInstalled = true
     atomicState.miApiServerIP = miApiIP
     atomicState.hubStatus = "online"
+    unsubscribe()
+    subscribe(location, null, processLANEvent, [filterEvents:false])
 }
 
 def getMiApiServerIP() {
-	return atomicState.miApiServerIP
+    return atomicState.miApiServerIP
 }
 
 // ------------------------------
 // Pages realted to Child App
 def mainChildPage() {
+    return dynamicPage(name: "mainChildPage", title: "Add Device", refreshInterval: interval, nextPage: "mainChildPageNext", uninstall: true) {    	
+        log.debug "mainChildPage>> parent's atomicState.MiApiServerIP: ${parent.getMiApiServerIP()}"
+        atomicState.miApiServerIP = parent.getMiApiServerIP()
+
+        section("Xiaomi Product Type :") {                                                  
+            input name: "selectXiaomiDeviceType", type: "enum", title: "Select Xiaomi Product Type :", options: ["Mi Remote", "XiaomiBT"], submitOnChange: true, required: true
+            log.debug "mainChildPage>> selectXiaomiDeviceType: $selectXiaomiDeviceType"
+            if (selectXiaomiDeviceType) {
+                switch (selectXiaomiDeviceType) {
+                    case "Mi Remote":                    
+                    atomicState.xiaomiDeviceType = "miremote"
+                    break
+                    case "XiaomiBT":
+                    atomicState.xiaomiDeviceType = "xiaomibt"
+                    break
+                    default:
+                        break
+                }
+
+            }                
+        }
+
+    }
+}
+
+def mainChildPageNext() {
     def interval
     if (atomicState.serverStatus && atomicState.deviceCommands && atomicState.device) {
         interval = 15
     } else {
         interval = 3
     }
-    return dynamicPage(name: "mainChildPage", title: "Add Device", refreshInterval: interval, nextPage: "mainChildPageNext", uninstall: true) {    	
-        log.debug "mainChildPage>> parent's atomicState.MiApiServerIP: ${parent.getMiApiServerIP()}"
-        atomicState.miApiServerIP = parent.getMiApiServerIP()
-        
-		section("Xiaomi Product Type :") {                                                  
-			input name: "selectXiaomiDeviceType", type: "enum", title: "Select Xiaomi Product Type :", options: ["Mi Remote"], submitOnChange: true, required: true
-			log.debug "mainChildPage>> selectXiaomiDeviceType: $selectXiaomiDeviceType"
-			if (selectXiaomiDeviceType) {
-                switch (selectXiaomiDeviceType) {
-                	case "Mi Remote":                    
-                    atomicState.xiaomiDeviceType = "miremote"
-                    break
-                    default:
-                        break
-                }
-                discoverDevices(atomicState.xiaomiDeviceType)
-                discoverCommands(atomicState.xiaomiDeviceType)
-            }                
+    return dynamicPage(name: "mainChildPageNext", title: "Device Install", refreshInterval: interval, uninstall: true, install: true) {
+
+        switch(atomicState.xiaomiDeviceType) {
+            case "xiaomibt":
+            xiaomibtInstall()
+            break
+
+            case "miremote":
+            miremoteInstall()
+            break
+            default:
+                break
+
         }
 
-        def foundDevices = getDeviceNames(getDevices())
-        log.debug "mainChildPage>> foundDevices : ${foundDevices}"
-        if (selectXiaomiDeviceType && foundDevices) {
-            section("Mi Remote Device :") {                                
-                input name: "selectedDevice", type: "enum",  title: "Select Mi Remote Device", multiple: false, options: foundDevices, submitOnChange: true, required: true
-                if (selectedDevice) {
-                    atomicState.device = selectedDevice
-                }
-            }
+    }
 
-            section("Name :") { 
-            	input name: "enteredName", type: "text",  title: "Input device name", submitOnChange: true, required: true
-                log.debug "mainChildPage>> enteredName : ${enteredName}"
-                if (enteredName) {
-                    atomicState.deviceName = enteredName
-                }
+}
+
+def miremoteInstall() {
+    discoverDevices(atomicState.xiaomiDeviceType)
+    discoverCommands(atomicState.xiaomiDeviceType)
+
+    def foundDevices = getDeviceNames(getDevices())
+    log.debug "miremoteInstall>> foundDevices : ${foundDevices}"
+    if (selectXiaomiDeviceType && foundDevices) {
+        section("Mi Remote Device :") {                                
+            input name: "selectedDevice", type: "enum",  title: "Select Mi Remote Device", multiple: false, options: foundDevices, submitOnChange: true, required: true
+            if (selectedDevice) {
+                atomicState.device = selectedDevice
             }
-            section("DTH Type :") {
-                def deviceType = ["Custom", "Aircon", "TV", "Fan", "Light"]
-                input name: "selectedDthType", type: "enum", title: "Select DTH Type", multiple: false, options: deviceType, submitOnChange: true, required: true
-                if (selectedDthType) {
-                    atomicState.dthType = selectedDthType
-                }
+        }
+
+        section("Name :") { 
+            input name: "enteredName", type: "text",  title: "Input device name", submitOnChange: true, required: true
+            log.debug "miremoteInstall>> enteredName : ${enteredName}"
+            if (enteredName) {
+                atomicState.deviceName = enteredName
             }
-        } else if (atomicState.xiaomiDeviceType) {
-            section() {
-                paragraph "Discovering devices.  Please wait..."
+        }
+        section("DTH Type :") {
+            def deviceType = ["Custom", "Aircon", "TV", "Fan", "Light"]
+            input name: "selectedDthType", type: "enum", title: "Select DTH Type", multiple: false, options: deviceType, submitOnChange: true, required: true
+            if (selectedDthType) {
+                atomicState.dthType = selectedDthType
             }
+        }
+    } else if (atomicState.xiaomiDeviceType) {
+        section() {
+            paragraph "Discovering devices.  Please wait..."
+        }
+    }
+
+    def foundCommands = getCommands()
+
+    log.debug "mainChildPage>> deviceCommands : ${foundCommands}"
+    if (atomicState.dthType && foundCommands) {
+        switch (atomicState.dthType) {
+            case "Aircon":
+            addAirconDevice(foundCommands)
+            break
+            case "TV":                    
+            addTvDevice(foundCommands)
+            break                
+            case "Fan":
+            addFanDevice(foundCommands)
+            break
+            case "Light":
+            addLightDevice(foundCommands)
+            break;
+            case "Custom":
+            default:
+                log.debug "selectedDeviceType>> default"
+            addMiRemoteCommandUI(foundCommands)
+        }
+
+
+    } else if (selectedDevice && atomicState.deviceCommands == null) {
+        // log.debug "addDevice()>> selectedDevice: $selectedDevice, commands : $commands"
+        section("") {
+            paragraph "Loading selected device's command.  This can take a few seconds. Please wait..."
         }
     }
 }
 
-def mainChildPageNext() {
-    return dynamicPage(name: "mainChildPageNext", title: "Command Setting", uninstall: true, install: true) {
-        def foundCommands = getCommands()
-
-        log.debug "mainChildPage>> deviceCommands : ${foundCommands}"
-        if (atomicState.dthType && foundCommands) {
-            switch (atomicState.dthType) {
-                case "Aircon":
-                addAirconDevice(foundCommands)
-                break
-                case "TV":                    
-                addTvDevice(foundCommands)
-                break                
-                case "Fan":
-                addFanDevice(foundCommands)
-                break
-                case "Light":
-                addLightDevice(foundCommands)
-                break;
-                case "Custom":
-                default:
-                    log.debug "selectedDeviceType>> default"
-                addMiRemoteCommandUI(foundCommands)
-            }
-
-
-        } else if (selectedDevice && atomicState.deviceCommands == null) {
-            // log.debug "addDevice()>> selectedDevice: $selectedDevice, commands : $commands"
-            section("") {
-                paragraph "Loading selected device's command.  This can take a few seconds. Please wait..."
+def xiaomibtInstall() {
+    discoverDevices(atomicState.xiaomiDeviceType)
+    
+    def foundDevices = getDeviceNames(getDevices())
+    log.debug "mainChildPage>> foundDevices : ${foundDevices}"
+    if (selectXiaomiDeviceType && foundDevices) {
+        section("Name :") { 
+            input name: "enteredName", type: "text",  title: "Input device name", submitOnChange: true, required: true
+            log.debug "xiaomibtInstall>> enteredName : ${enteredName}"
+            if (enteredName) {
+                atomicState.deviceName = enteredName
             }
         }
+
+        section("Xiaomi BT Temperature / Humidity Device :") {                                
+            input name: "selectedDevice", type: "enum",  title: "Select Xiaomi BT Temperature / Humidity Device", multiple: false, options: foundDevices, submitOnChange: true, required: true
+            if (selectedDevice) {
+                atomicState.device = selectedDevice
+            }
+        }
+    } else if (atomicState.xiaomiDeviceType) {
+        section() {
+            paragraph "Discovering devices.  Please wait..."
+        }
     }
-    
 }
 
 // Add device page for Default On/Off device
@@ -259,7 +312,7 @@ def addMiRemoteCommandUI(foundCommands) {
     state.selectedCommands["cmd10"] = selectedCmd10
     state.selectedCommands["cmd11"] = selectedCmd11
     state.selectedCommands["cmd12"] = selectedCmd12    
-    
+
     monitorMenu() 
 
 }
@@ -302,7 +355,7 @@ def addFanDevice(foundCommands) {
     state.selectedCommands["custom4"] = custom4
     state.selectedCommands["custom5"] = custom5    
 
-	monitorMenu() 
+    monitorMenu() 
 }
 
 // Add device page for Fan device
@@ -341,13 +394,13 @@ def addLightDevice(foundCommands) {
     state.selectedCommands["custom4"] = custom4
     state.selectedCommands["custom5"] = custom5    
 
-	monitorMenu() 
+    monitorMenu() 
 }
 
 // Add device page for Aircon
 def addAirconDevice(foundCommands) {
     state.selectedCommands = [:]
-    
+
     section("Commands :") {            
         input name: "selectedPowerOn", type: "enum", title: "Power On", options: foundCommands, submitOnChange: true, multiple: false, required: true
         input name: "selectedPowerOff", type: "enum", title: "Power Off", options: foundCommands, submitOnChange: true, multiple: false, required: true
@@ -388,7 +441,7 @@ def addAirconDevice(foundCommands) {
     state.selectedCommands["custom3"] = custom3
     state.selectedCommands["custom4"] = custom4
     state.selectedCommands["custom5"] = custom5 
-    
+
     state.selectedCommands["temp18"] = temp18
     state.selectedCommands["temp19"] = temp19
     state.selectedCommands["temp20"] = temp20
@@ -403,13 +456,13 @@ def addAirconDevice(foundCommands) {
     state.selectedCommands["temp29"] = temp29
     state.selectedCommands["temp30"] = temp30  
 
-	monitorMenu() 
+    monitorMenu() 
 }
 
 // Add device page for TV
 def addTvDevice(foundCommands) {
     state.selectedCommands = [:]
-    
+
     section("Commands :") {     
         input name: "selectedPowerOn", type: "enum", title: "Power On", options: foundCommands, submitOnChange: true, multiple: false, required: true
         input name: "selectedPowerOff", type: "enum", title: "Power Off", options: foundCommands, submitOnChange: true, multiple: false, required: true
@@ -438,11 +491,11 @@ def addTvDevice(foundCommands) {
         input name: "custom4", type: "enum", title: "Custom4", options: foundCommands, submitOnChange: true, multiple: false, required: false  
         input name: "custom5", type: "enum", title: "Custom5", options: foundCommands, submitOnChange: true, multiple: false, required: false  
     }
-    
+
     //state.selectedCommands["power"] = selectedPowerToggle
     state.selectedCommands["on"] = selectedPowerOn
     state.selectedCommands["off"] = selectedPowerOff  
-	state.selectedCommands["volup"] = selectedVolumeUp
+    state.selectedCommands["volup"] = selectedVolumeUp
     state.selectedCommands["chup"] = selectedChannelUp
     state.selectedCommands["mute"] = selectedMute
     state.selectedCommands["voldown"] = selectedVolumeDown
@@ -466,8 +519,8 @@ def addTvDevice(foundCommands) {
     state.selectedCommands["custom3"] = custom3
     state.selectedCommands["custom4"] = custom4
     state.selectedCommands["custom5"] = custom5  
- 
- 	monitorMenu() 
+
+    monitorMenu() 
 }
 
 
@@ -508,10 +561,10 @@ def powerMonitorMenu() {
 def contactMonitorMenu() {
     section("Contact :") {
         input name: "contactMonitor", type: "capability.contactSensor", title: "Device", submitOnChange: true, multiple: false, required: false
-    	if (contactMonitor) {    
+        if (contactMonitor) {    
             paragraph "[Normal] : Open(On) / Close(Off)\n[Reverse] : Open(Off) / Close(On)"
             input name: "contactMonitorMode", type: "enum", title: "Mode", multiple: false, options: ["Normal", "Reverse"], defaultValue: "Normal", submitOnChange: true, required: true	
-    	}
+        }
         atomicState.contactMonitorMode = contactMonitorMode
     }
 }
@@ -559,9 +612,9 @@ def contactMonitorHandler(evt) {
     def child = getChildDevice(deviceId)
     def event
 
-	def contacted = "off", notContacted = "on"
+    def contacted = "off", notContacted = "on"
     if (atomicState.contactMonitorMode == "Reverse") {
-    	contacted = "on"
+        contacted = "on"
         notContacted = "off"
     }
     log.debug "contactMonitorHandler>> value is : $evt.value"
@@ -576,50 +629,126 @@ def contactMonitorHandler(evt) {
 
 
 // ------------------------------------
-
 def getCommandName(cmd) {
-	def name = state.selectedCommands[cmd]
-	log.debug "getCommandName>> cmd : ${cmd}, name: ${name}"
+    def name = state.selectedCommands[cmd]
+    log.debug "getCommandName>> cmd : ${cmd}, name: ${name}"
     return name
 }
 
 // Install child device
 def initializeChild() {
-    //def devices = getDevices()    
-    log.debug "addDeviceDone: $selectedDevice, xiaomi type: $atomicState.xiaomiDeviceType"
-
-
-	unsubscribe()
-    if (atomicState.selectedMonitorType == "Power Meter") {  
-    	log.debug "Power: $powerMonitor"
-    	subscribe(powerMonitor, "power", powerMonitorHandler)
-    } else if (atomicState.selectedMonitorType == "Contact") {
-    	log.debug "Contact: $contactMonitor"
-    	subscribe(contactMonitor, "contact", contactMonitorHandler)
-    }
+	def dth_name
+    def deviceId
+    def label
     
-    def deviceId = "${atomicState.device}_${atomicState.deviceName}"
+    log.debug "addDeviceDone: $selectedDevice, xiaomi type: $atomicState.xiaomiDeviceType"   
+    switch(atomicState.xiaomiDeviceType) {
+    	case "miremote":
+        unsubscribe()
+        if (atomicState.selectedMonitorType == "Power Meter") {  
+            log.debug "Power: $powerMonitor"
+            subscribe(powerMonitor, "power", powerMonitorHandler)
+        } else if (atomicState.selectedMonitorType == "Contact") {
+            log.debug "Contact: $contactMonitor"
+            subscribe(contactMonitor, "contact", contactMonitorHandler)
+        }
+        dth_name = "KuKu Mi_MiRemote_${atomicState.dthType}"
+        break;
+        
+        case "xiaomibt":
+        log.debug ("mac>>>>> ${getDeviceMacByName(atomicState.device)}")
+        atomicState.mac = getDeviceMacByName(atomicState.device)
+        dth_name = "KuKu Mi_XiaomiBT_TempHumi"
+        break;
+    }
+
+
+    deviceId = "${atomicState.device}_${atomicState.deviceName}"
     def existing = getChildDevice(deviceId)
-    app.updateLabel("$deviceId")
+    log.debug "addDeviceDone: deviceId: $deviceId"
+    app.updateLabel(deviceId)
     if (!existing) {
-        def childDevice = addChildDevice("turlvo", "KuKu Mi_${atomicState.xiaomiDeviceType}_${atomicState.dthType}", 
-        								deviceId, null, ["label": deviceId])
+        def childDevice = addChildDevice("turlvo", dth_name, 
+                                         deviceId, null, ["label": deviceId])
     } else {
         log.debug "Device already created"
         existing.updated()
     }
 }
 
+import groovy.json.JsonSlurper
+def processLANEvent(evt) {
+    def deviceId = "${atomicState.device}_${atomicState.deviceName}"
+    def child = getChildDevice(deviceId)
 
-// For child Device
+    if (evt) {
+        def msg = parseLanMessage(evt.value)
+        //     switch (atomicState.xiaomiDeviceType) {
+        //        case "xiaomibt":
+        def body = msg.body
+        if (body && body != "OK")
+        {        
+            log.debug ("processLANEvent>> event: $body")
+            def sluper = new JsonSlurper();
+            def json = sluper.parseText(body)
+
+            //def childApps = getChildApps()
+            def childApps = getAllChildApps()
+            // Update the label for all child apps
+            childApps.each {
+                //if (!it.label?.startsWith(app.name)) {
+                it.transferLANEvent(json)
+                //}
+            }
+        }
+    }
+}
+
+// For child app
+// Parent transfer received LAN events to child app 
+def transferLANEvent(json) {
+	log.debug ("transferLANEvent>> received json data from parent App: $json")
+	//log.debug ("transferLANEvent>> current child app type: ${atomicState.xiaomiDeviceType}, device MAC: ${atomicState.mac}")
+    if (json.device == atomicState.xiaomiDeviceType && json.mac == atomicState.mac) {
+        //log.info "Xiaomi BT Temp/Humi Evnet: report_type: ${json.report_type}, mac: ${json.mac}, temp: ${json.temperature}, humi: ${json.humidity}, battery: ${json.battery}"
+        def event = []
+        switch (json.report_type) {
+        	case 'temperatureChange':
+            event =  [temperature: json.temperature] 
+            break
+            
+            case 'humidityChange':
+            event =  [humidity: json.humidity] 
+            break
+            
+            case 'batteryChange':
+            event =  [battery: json.battery] 
+            break
+            
+            case 'temperatureAndHumidityChange':
+            event =  [temperature: json.temperature, humidity: json.humidity] 
+            break
+            
+            default:
+            break
+        }
+        
+        def deviceId = "${atomicState.device}_${atomicState.deviceName}"
+        def child = getChildDevice(deviceId)
+        child.generateEvent(event)
+    }
+
+}
+
+// For child app
 def command(child, command) {
-	//def device = getDeviceByName("$selectedDevice")
-    
-	log.debug "childApp parent command(child)>>  type : $atomicState.xiaomiDeviceType, device: $atomicState.device, command: $command"
+    //def device = getDeviceByName("$selectedDevice")
+
+    log.debug "childApp parent command(child)>>  type : $atomicState.xiaomiDeviceType, device: $atomicState.device, command: $command"
     def realCmd = getCommandName(command)
- 
- 	if (realCmd != null) {
-    	sendCommandToDevice(atomicState.xiaomiDeviceType, atomicState.device, realCmd)
+
+    if (realCmd != null) {
+        sendCommandToDevice(atomicState.xiaomiDeviceType, atomicState.device, realCmd)
     }
 
 }
@@ -636,13 +765,15 @@ def updated() {
 }
 
 def initialize() {
-	log.debug "initialize()"
-	parent ? initializeChild() : initializeParent()
+    log.debug "initialize()"
+    parent ? initializeChild() : initializeParent()
+    //unsubscribe()
+    //subscribe(location, null, processLANEvent, [filterEvents:false])
 }
 
 
 def uninstalled() {
-	parent ? null : removeChildDevices(getChildDevices())
+    parent ? null : removeChildDevices(getChildDevices())
 }
 
 private removeChildDevices(delete) {
@@ -659,46 +790,62 @@ private removeChildDevices(delete) {
 // return : result of 'discoverCommands(xiaomiDeviceType)' method. It means that recently requested device's commands
 def getCommands() {
     //log.debug "getCommandsOfDevice>> $atomicState.foundCommandOfDevice"
-    
+
     // Todo
     //atomicState.foundCommands = ["turn_on", "turn_off"]
     return atomicState.foundCommands    
 
 }
- 
+
 // getHubDevices
 // return : searched list of device in Mi Hub when installed
 def getDevices() {
-	
+
     // Todo
     //atomicState.devices = ["mi1", "mi2"]
-	return atomicState.devices
-    
+    return atomicState.devices
+
 }
 
 def getDeviceNames(devices) {
-	def result = []
-    
+    def result = []
+
     if(devices) { 
-    	devices.each {
-        	result.add(it.name)
+        devices.each {
+            result.add(it.name)
         }
     }
+
+    return result
+}    
+
+def getDeviceMacByName(name) {
+    def result = ""
     
+    if(atomicState.devices) { 
+        atomicState.devices.each {
+                	log.debug ("getDeviceMacByName>> find : $name, >> $it.name,  $it.mac")
+            if (it.name == name) {
+            	log.debug ("getDeviceMacByName>> found $it")
+                result = "$it.mac"
+            }
+        }
+    }
+
     return result
 }    	
 
 def getDeviceByName(name) {
-	def result
-    
+    def result
+
     if(atomicState.devices) { 
-    	atomicState.devices.each {
-        	if(it.name == name) {
-        		result = it
+        atomicState.devices.each {
+            if(it.name == name) {
+                result = it
             }              
         }
     }
-    
+
     return result
 }   
 
@@ -711,7 +858,7 @@ def getDeviceByName(name) {
 // - command : sending command
 // return : 'sendCommandToDevice_response()' method callback
 def sendCommandToDevice(devType, device, command) {
-	log.debug("sendCommandToDevice >> miApiServerIP : ${parent.getMiApiServerIP()}")
+    log.debug("sendCommandToDevice >> miApiServerIP : ${parent.getMiApiServerIP()}")
     sendHubCommand(setHubAction(parent.getMiApiServerIP(), "/$devType/api/device/$device/command/$command", "sendCommandToDevice_response"))
 }
 
@@ -722,7 +869,7 @@ def sendCommandToDevice_response(resp) {
         def body = new groovy.json.JsonSlurper().parseText(parseLanMessage(resp.description).body)
         log.debug("sendCommandToDevice_response >> $body")
     } else {
-    	log.error("sendCommandToDevice_response >> response body is  null")
+        log.error("sendCommandToDevice_response >> response body is  null")
     }
     return
 }
@@ -734,15 +881,15 @@ def sendCommandToDevice_response(resp) {
 // return : 'discoverCommands_response()' method callback
 def discoverCommands(devType) {	
     log.debug "discoverCommands>> type:$devType"
-    
+
     sendHubCommand(getHubAction(atomicState.miApiServerIP, "/$devType/api/commands", "discoverCommands_response"))
 
 }
 
 def discoverCommands_response(resp) {
-   	def result = []
+    def result = []
     def body = new groovy.json.JsonSlurper().parseText(parseLanMessage(resp.description).body)
-	//log.debug("discoverCommands_response >> $body")
+    //log.debug("discoverCommands_response >> $body")
 
     if(body) {            	
         body.each {            
@@ -751,7 +898,7 @@ def discoverCommands_response(resp) {
             result.add(it.name)            
         }
     }
-    
+
     atomicState.foundCommands = result    
 }
 
@@ -760,20 +907,20 @@ def discoverCommands_response(resp) {
 // - devType : Searching device's type
 // return : 'discoverDevices_response()' method callback
 def discoverDevices(devType) {
-	log.debug "discoverDevices>> $devType"
-	sendHubCommand(getHubAction(atomicState.miApiServerIP, "/$devType/api/devices", "discoverDevices_response"))
+    log.debug "discoverDevices>> $devType"
+    sendHubCommand(getHubAction(atomicState.miApiServerIP, "/$devType/api/devices", "discoverDevices_response"))
 }
 
 def discoverDevices_response(resp) {
-	def result = []
-    
+    def result = []
+
     def body = new groovy.json.JsonSlurper().parseText(parseLanMessage(resp.description).body)
     log.debug("discoverDevices_response >> $body")
-	
+
     if(body) {            	
         body.each {
             log.debug "discoverDevices_response: $it"
-            def device = ['id' : it.dev_ID, 'name' : it.name]
+            def device = ['id' : it.dev_ID, 'name' : it.name, 'mac' : it.mac]
             result.add(device)
         }
     }
@@ -787,24 +934,24 @@ def discoverDevices_response(resp) {
 // - host : ip address searching hubs
 // return : 'discoverHubs_response()' method callback
 def checkServer(host) {
-	log.debug("checkServer: $host")
+    log.debug("checkServer: $host")
     return sendHubCommand(getHubAction(host, "/miremote", "checkServer_response"))
 }
 
 def checkServer_response(resp) {
-	def result = []
+    def result = []
     def body = new groovy.json.JsonSlurper().parseText(parseLanMessage(resp.description).body)
     log.debug("checkServer_response >> $body.hubs")
-	
+
     if(body && body.hubs != null) {            	
-//        body.hubs.each {
-//            log.debug "checkServer_response: $it"
-//            result.add(it)
-//        }
+        //        body.hubs.each {
+        //            log.debug "checkServer_response: $it"
+        //            result.add(it)
+        //        }
 
         atomicState.serverStatus = true
     } else {
-    	atomicState.serverStatus = false
+        atomicState.serverStatus = false
     }    
 }
 
@@ -816,9 +963,9 @@ def checkServer_response(resp) {
 // - url : target url
 // - callback : response callback method name
 def getHubAction(host, url, callback) {
-	log.debug "getHubAction>> $host, $url, $callback"
+    log.debug "getHubAction>> $host, $url, $callback"
     return new physicalgraph.device.HubAction("GET ${url} HTTP/1.1\r\nHOST: ${host}\r\n\r\n",
-            physicalgraph.device.Protocol.LAN, "${host}", [callback: callback])
+                                              physicalgraph.device.Protocol.LAN, "${host}", [callback: callback])
 }
 
 // setHubAction
@@ -827,7 +974,7 @@ def getHubAction(host, url, callback) {
 // - url : target url
 // - callback : response callback method name
 def setHubAction(host, url, callback) {
-	log.debug "getHubAction>> $host, $url, $callback"
+    log.debug "getHubAction>> $host, $url, $callback"
     return new physicalgraph.device.HubAction("POST ${url} HTTP/1.1\r\nHOST: ${host}\r\n\r\n",
-            physicalgraph.device.Protocol.LAN, "${host}", [callback: callback])
+                                              physicalgraph.device.Protocol.LAN, "${host}", [callback: callback])
 }
