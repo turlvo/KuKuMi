@@ -318,7 +318,7 @@ def xiaomibt_dev_list(request):
 
 def send_option_to_daemon(ip, iface, threshold):
     p = subprocess.Popen(["python", "/root/KuKuMi/xiaomibt-daemon/xiaomibt-daemon.py", "set", iface, ip, threshold])
-    return (p.communicate()[0]).decode('utf-8')
+    return (p.communicate()[0])
 
 
 def send_scan_to_daemon():
@@ -341,7 +341,7 @@ def send_get_state_to_daemon():
 
 def send_start_to_daemon():
     p = subprocess.Popen(["python", "/root/KuKuMi/xiaomibt-daemon/xiaomibt-daemon.py", "restart"])
-    return (p.communicate()[0]).decode('utf-8')
+    return (p.communicate()[0])
 
 
 def discover_bluetooth_interface():
