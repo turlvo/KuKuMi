@@ -1,0 +1,294 @@
+{% extends "app/base_site.html" %}
+
+{% block title %} Xiaomi BT Device {% endblock title %}
+
+{% block stylesheets %}
+    {{ block.super }}
+    <!-- jQuery custom content scroller -->
+    <link href="/static/vendors/malihu-custom-scrollbar-plugin/jquery.mCustomScrollbar.min.css" rel="stylesheet"/>
+{% endblock stylesheets %}
+
+{% block sidebar_class %}nav-md menu_fixed{% endblock sidebar_class %}
+
+{% block content %}
+    <div class="right_col" role="main">
+        <div class="x_content">
+            <div class="page-title">
+
+                <h3>
+                    Device List
+                </h3>
+
+                <table class="table table-striped jambo_table bulk_action">
+                    <thead>
+                        <tr>
+                            <th>Device Name</th>
+                            <th>MAC address</th>
+                        </tr>
+                    </thead>
+                    {% for item in devices %}
+                        <tr data-toggle="modal" data-target="#manualAddModal"
+                                   data-dev_id={{ item.id }} data-name={{ item.name }}
+                                   data-mac={{ item.mac }} data-type="Update" style="cursor:pointer;">
+                            <td id="dev_id" style="display:none;"> {{ item.id }}</td>
+                            <td>{{ item.name }}</td>
+                            <td>{{ item.mac }}</td>
+                        </tr>
+                    {% endfor %}
+                </table>
+
+                <div>
+                    <button type="button" class="btn btn-info registerButton" data-toggle="modal"
+                            data-target="#autoAddModal"
+                            data-type="Add">Auto Add
+                    </button>
+                    <button type="button" class="btn btn-info registerButton" data-toggle="modal"
+                            data-target="#manualAddModal"
+                            data-type="Add">Manual Add
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="manualAddModal" role="dialog">
+        <div class="modal-dialog">
+
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Add device</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group" style="display:none;">
+                        <input type="text" class="form-control" id="dev_id">
+                    </div>
+                    <div class="form-group">
+                        <label for="usr">Device Name:</label>
+                        <input type="text" class="form-control" id="name">
+                    </div>
+                    <div class="form-group">
+                        <label for="pwd">MAC Address:</label>
+                        <input type="text" class="form-control" id="mac">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-info deleteButton" id="deleteDataButton">Delete</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal" id="registerDataButton">OK
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="autoAddModal" role="dialog">
+        <div class="modal-dialog">
+
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Add device</h4>
+                </div>
+                <div class="modal-body">
+                    <table class="table" id="autoAddModal_table">
+
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal" id="registerDataAutoButton">Add
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock content %}
+
+{% block javascripts %}
+    {{ block.super }}
+    <!-- jQuery custom content scroller -->
+    <script src="/static/vendors/malihu-custom-scrollbar-plugin/jquery.mCustomScrollbar.concat.min.js"></script>
+    <script>
+
+        $(document).on("click", "#registerDataButton", function () {
+            showLoading();
+            var name = $("#name").val();
+            var mac = $("#mac").val();
+            var dev_id = $(".modal-body #dev_id").val();
+            if (name == "" || mac == "") {
+                alert("Fill the blank.");
+                return;
+            }
+            var $this = $(this);
+            var button_value = $this.text()
+            var request_url = "/xiaomibt/device/create";
+            var request_type = "POST";
+            if (button_value == "Update") {
+                request_url = "/xiaomibt/device/edit/" + dev_id
+                request_type = "POST";
+            }
+            //alert(request_url);
+
+            $.ajax({
+                url: request_url,
+                type: request_type,
+                beforeSend: function (xhr) {
+                    xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+                },
+                data: {'name': name, 'mac': mac},
+                success: function (result) {
+                    $this.button('reset');
+                    alert(result.message);
+                    hideLoading();
+                    location.reload();
+                },
+                error: function (result) {
+                    $this.button('reset');
+                    alert(result.message);
+                    hideLoading();
+                }
+            });
+
+        });
+
+
+        $(document).on("click", ".deleteButton", function () {
+            showLoading();
+            var dev_id = $(".modal-body #dev_id").val();
+            var $this = $(this);
+            //alert(dev_id)
+            $.ajax({
+                url: "/xiaomibt/device/delete/" + dev_id,
+                type: 'DELETE',
+                beforeSend: function (xhr) {
+                    xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+                },
+                success: function (result) {
+                    $this.button('reset');
+                    alert(result);
+                    hideLoading();
+                    location.reload();
+                },
+                error: function (result) {
+                    $this.button('reset');
+                    alert(result.message);
+                    hideLoading();
+                }
+            });
+
+            $this.button('loading');
+        });
+
+        function showLoading() {
+            $.showLoading({
+                name: 'jump-pulse'
+            });
+        }
+
+        function hideLoading() {
+            $.hideLoading();
+        }
+
+        // using jQuery
+        function getCookie(name) {
+            var cookieValue = null;
+            if (document.cookie && document.cookie != '') {
+                var cookies = document.cookie.split(';');
+                for (var i = 0; i < cookies.length; i++) {
+                    var cookie = jQuery.trim(cookies[i]);
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        //triggered when manualAddModal is about to be shown
+        $('#manualAddModal').on('show.bs.modal', function (e) {
+            showLoading();
+            //get data-id attribute of the clicked element
+            var dev_id = $(e.relatedTarget).data('dev_id');
+            var name = $(e.relatedTarget).data('name');
+            var mac = $(e.relatedTarget).data('mac');
+            var request_type = $(e.relatedTarget).data('type');
+
+            if (request_type == 'Add') {
+                $("#deleteDataButton").hide();
+            } else {
+                $("#deleteDataButton").show();
+            }
+            //alert(dev_id);
+            //populate the textbox
+            $(".modal-body #dev_id").val(dev_id);
+            $(".modal-body #name").val(name);
+            $(".modal-body #mac").val(mac);
+            $("#registerDataButton").text(request_type);
+            hideLoading();
+        });
+
+        //triggered when autoAddModal is about to be shown
+        $('#autoAddModal').on('show.bs.modal', function (e) {
+            showLoading();
+            $.ajax({
+                type: 'GET',
+                url: '/xiaomibt/api/device/discover',
+                dataType: 'json',
+                success: function (data) {
+                    if (data.result) {
+                        console.log(data.message)
+                        $('#autoAddModal_table').empty();
+                        $('#autoAddModal_table').append("<tr><th></th><th>Device Name</th><th>MAC address</th></tr>");
+                        for (var i = 0; i < data.message.length; i++) {
+                            $('#autoAddModal_table').append("<tr><td><input type='checkbox'></td><td id='name'>" + "MJ_HT_V1-" + data.message[i].substr(data.message[i].length - 5, 5) + "</td><td id='mac'>" + data.message[i] + "</td></tr>");
+                        }
+                    }
+                    hideLoading();
+                }
+            });
+        });
+
+        $(document).on("click", "#registerDataAutoButton", function () {
+            showLoading();
+            $('#autoAddModal_table input:checkbox:checked').each(function () {
+
+            });
+            var selectedRows = $('table.table').find('tr') // select all rows that has
+                .has('input[type=checkbox]:checked') // checked checkbox element
+            var $this = $(this);
+            selectedRows.each(function () {
+                var name = $(this).children().eq(1).text();
+                var mac = $(this).children().eq(2).text();
+                console.log($(this).children())
+                //alert(name + " " + mac);
+
+                $.ajax({
+                    url: "/xiaomibt/device/create",
+                    type: "POST",
+                    beforeSend: function (xhr) {
+                        xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+                    },
+                    data: {'name': name, 'mac': mac},
+                    success: function (result) {
+                        $this.button('reset');
+                        alert(result.message);
+                        hideLoading();
+                        location.reload();
+                    },
+                    error: function (result) {
+                        $this.button('reset');
+                        alert(result.message);
+                        hideLoading();
+                    }
+                });
+            });
+
+        });
+
+    </script>
+
+{% endblock javascripts %}

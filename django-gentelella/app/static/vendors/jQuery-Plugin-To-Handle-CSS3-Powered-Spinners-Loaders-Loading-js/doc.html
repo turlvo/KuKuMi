@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Loading.js by Dn9x</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="./dist/loading.min.css" media="screen">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?bd796e8b39743b8f87ab71e181f44aaf";
+      var s = document.getElementsByTagName("script")[0]; 
+      s.parentNode.insertBefore(hm, s);
+    })();
+    </script>
+
+</head>
+
+<body>
+    <section class="page-header">
+        <h1 class="project-name">Loading.js</h1>
+        <h2 class="project-tagline">jquery plug-in, jquery.loading.js</h2>
+        <a class="github-button" href="https://github.com/dn9x" data-style="mega" data-count-href="/dn9x/followers" data-count-api="/users/dn9x#followers" data-count-aria-label="# followers on GitHub" aria-label="Follow @dn9x on GitHub">Follow @dn9x</a>
+        <a class="github-button" href="https://github.com/dn9x/loading.js" data-icon="octicon-star" data-style="mega" data-count-href="/dn9x/loading.js/stargazers" data-count-api="/repos/dn9x/loading.js#stargazers_count" data-count-aria-label="# stargazers on GitHub" aria-label="Star dn9x/loading.js on GitHub">Star</a>
+        <a class="github-button" href="https://github.com/dn9x/loading.js/fork" data-icon="octicon-repo-forked" data-style="mega" data-count-href="/dn9x/loading.js/network" data-count-api="/repos/dn9x/loading.js#forks_count" data-count-aria-label="# forks on GitHub" aria-label="Fork dn9x/loading.js on GitHub">Fork</a>
+    </section>
+    <section class="main-content">
+
+<p><h2>Example</h2></p>
+        <div id="demo">
+            <select class="input">
+                <option value="line-pulse">line-pulse</option>
+                <option value="jump-pulse">jump-pulse</option>
+                <option value="circle-turn">circle-turn</option>
+                <option value="circle-turn-scale">circle-turn-scale</option>
+                <option value="circle-fade">circle-fade</option>
+                <option value="square-flip">square-flip</option>
+                <option value="line-scale">line-scale</option>
+            </select>
+            <button class="butt" id="run">Run it</button>
+        </div>
+<pre class="prettyprint prettyprinted" style="padding:10px;border:0px;">
+// The currently running code: 
+$.showLoading({name: '<label id="params">line-pulse</label>', allowHide: true });
+</pre>
+<p><h2>How to use?</h2></p>
+<pre class="prettyprint prettyprinted" style="padding:10px;border:0px;">
+// How to show?
+$.showLoading(option);
+<em>&nbsp;</em>
+Params:
+    option.name          --loading style / string
+    option.allowHide     --click mask hide loading / boolean
+    option.callback      --callback / function
+
+<em>&nbsp;</em>
+// How to hide?
+$.hideLoading();
+</pre>
+<p><h2>Maybe you dont need jquery?</h2></p>
+<pre class="prettyprint prettyprinted" style="padding:10px;border:0px;">
+// use this
+< script src="./dist/loading.min.js"> < /script >
+
+// How to show?
+window.showLoading(option);
+<em>&nbsp;</em>
+Params:
+    option.name          --loading style / string
+    option.allowHide     --click mask hide loading / boolean
+    option.callback      --callback / function
+
+<em>&nbsp;</em>
+// How to hide?
+window.hideLoading();
+</pre>
+        <footer class="site-footer">
+            <span class="site-footer-owner"><a href="https://github.com/Dn9x/loading.js">Loading.js</a> is maintained by <a href="https://github.com/Dn9x">Dn9x</a>.</span>
+        </footer>
+    </section>
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="//cdn.rawgit.com/google/code-prettify/master/loader/run_prettify.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="./dist/jquery.loading.min.js"></script>
+    <script>
+        $(function(){
+            $('.input').change(function(){
+                $('#params').text($('.input').val());
+            });
+            $('#run').click(function(){
+                $.showLoading({name: $('.input').val(), allowHide: true });
+            });
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,292 @@
+{% extends "app/base_site.html" %}
+
+{% block title %} Xiaomi BT Device {% endblock title %}
+
+{% block stylesheets %}
+    {{ block.super }}
+    <!-- jQuery custom content scroller -->
+    <link href="/static/vendors/malihu-custom-scrollbar-plugin/jquery.mCustomScrollbar.min.css" rel="stylesheet"/>
+{% endblock stylesheets %}
+
+{% block sidebar_class %}nav-md menu_fixed{% endblock sidebar_class %}
+
+{% block content %}
+    <div class="right_col" role="main">
+        <div class="x_content">
+            <div class="page-title">
+
+                <h3>
+                    Command List
+                </h3>
+
+                <table class="table table-striped jambo_table bulk_action" style="table-layout:fixed">
+                    <thead>
+                    <tr>
+                        <th>Command Name</th>
+                        <th>Command Code</th>
+                    </tr>
+                    </thead>
+                    {% for item in commands %}
+                        <tr  data-toggle="modal" data-target="#myModal"
+                                   data-index={{ item.id }} data-name={{ item.name }}
+                                   data-code={{ item.code }} data-type="Update"  style="cursor:pointer;">
+                            <td>{{ item.name }}</td>
+                            <td style="overflow: hidden; text-overflow: ellipsis; width: 500px;">{{ item.code }}</td>
+                        </tr>
+                    {% endfor %}
+                </table>
+
+                <div>
+                    <button type="button" class="btn btn-info registerButton" data-toggle="modal" data-target="#myModal"
+                            data-type="Add">Add
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="myModal" role="dialog">
+        <div class="modal-dialog">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Add command</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group" style="display:none;">
+                        <input type="text" class="form-control" id="index">
+                    </div>
+                    <div class="form-group">
+                        <label for="usr">Command Name:</label>
+                        <input type="text" class="form-control" id="name">
+                    </div>
+                    <div class="form-group">
+                        <label for="pwd">Command Code:</label>
+                        <input type="text" class="form-control" id="code">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-info deleteButton" id="deleteDataButton">Delete</button>
+
+                    {% if devices %}
+                        <select id="selectedDevice" style="display:none;">
+                            {% for item in devices %}
+                                <option value="{{ item.name }}">{{ item.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <button type="button" class="btn btn-info learnCommandButton" id="learnCommandButton"
+                                style="display:none;">
+                            Learn
+                        </button>
+                        <button type="button" class="btn btn-info sendCommandButton" id="sendCommandButton"
+                                style="display:none;">Test
+                            Command
+                        </button>
+                    {% endif %}
+
+
+                    <button type="button" class="btn btn-default" data-dismiss="modal" id="registerDataButton">OK
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+{% endblock content %}
+
+{% block javascripts %}
+    {{ block.super }}
+    <!-- jQuery custom content scroller -->
+    <script src="/static/vendors/malihu-custom-scrollbar-plugin/jquery.mCustomScrollbar.concat.min.js"></script>
+    <script>
+        $(document).on("click", "#registerDataButton", function () {
+            var index = $(".modal-body #index").val();
+            var name = $("#name").val();
+            var code = $("#code").val();
+
+
+            if (name == "" || code == "") {
+                alert("Fill the blank.");
+                return;
+            }
+            var $this = $(this);
+            var button_value = $this.text()
+            var request_url = "/miremote/command/create";
+            var request_type = "POST";
+            if (button_value == "Update") {
+                request_url = "/miremote/command/edit/" + index
+                request_type = "POST";
+            }
+
+            $.ajax({
+                url: request_url,
+                type: request_type,
+                data: {'name': name, 'code': code},
+                beforeSend: function (xhr) {
+                    xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+                },
+                success: function (result) {
+                    $this.button('reset');
+                    alert(result.message);
+                    location.reload();
+                },
+                error: function (result) {
+                    $this.button('reset');
+                    alert(result.message);
+                }
+            });
+
+        });
+
+
+        $(document).on("click", ".deleteButton", function () {
+            var index = $(".modal-body #index").val();
+            var $this = $(this);
+            $.ajax({
+                url: "/miremote/command/delete/" + index,
+                type: 'DELETE',
+                success: function (result) {
+                    $this.button('reset');
+                    alert(result);
+                    location.reload();
+                },
+                error: function (result) {
+                    $this.button('reset');
+                    alert(result.message);
+                }
+            });
+
+            $this.button('loading');
+        });
+
+
+        $(document).on("click", ".learnCommandButton", function () {
+            var index = $(".modal-body #index").val();
+            var $this = $(this);
+            showLoading();
+            $.ajax({
+                type: 'GET',
+                url: '/miremote/api/device/' + $('#selectedDevice').val() + '/learn_cmd',
+                dataType: 'json',
+                success: function (data) {
+                    if (data.result) {
+                        var count = 10;
+                        var timer = setInterval(function () {
+                            count -= 1;
+                            if (count % 5 == 0) {
+                                $.ajax({
+                                    type: "GET",
+                                    url: '/miremote/api/device/' + $('#selectedDevice').val() + '/read_cmd',
+                                    dataType: 'json',
+                                    success: function (data) {
+                                        if (data.result) {
+                                            clearInterval(timer);
+                                            //document.getElementById('id_code').value = data.message;
+                                            $(".modal-body #code").val(data.message);
+                                            hideLoading();
+                                            $this.button('reset');
+                                        }
+                                    }
+                                });
+                            }
+
+                            if (count < 0) {
+                                clearInterval(timer);
+                                alert("Could not read learned command");
+                                hideLoading();
+                                $this.button('reset');
+                            }
+                        }, 1000);
+                    }
+                }
+            });
+
+            $this.button('loading');
+        });
+
+
+        $(document).on("click", ".sendCommandButton", function () {
+            var $this = $(this);
+            var button_value = $this.text()
+            $.ajax({
+                type: 'POST',
+                data: {isTest: true},
+                url: '/miremote/api/device/' + $('#selectedDevice').val() + '/command/' + $(".modal-body #code").val(),
+                dataType: 'json',
+                beforeSend: function (xhr) {
+                    xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+                },
+                success: function (data) {
+                    $this.button('reset');
+                    if (data.result) {
+                    }
+                }
+            });
+            $this.button('sending...');
+
+        });
+
+        function showLoading() {
+            $.showLoading({
+                name: 'jump-pulse'
+            });
+        }
+
+        function hideLoading() {
+            $.hideLoading();
+        }
+
+
+        // using jQuery
+        function getCookie(name) {
+            var cookieValue = null;
+            if (document.cookie && document.cookie != '') {
+                var cookies = document.cookie.split(';');
+                for (var i = 0; i < cookies.length; i++) {
+                    var cookie = jQuery.trim(cookies[i]);
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
+
+    <script>
+        //triggered when modal is about to be shown
+        $('#myModal').on('show.bs.modal', function (e) {
+
+            //get data-id attribute of the clicked element
+            var index = $(e.relatedTarget).data('index');
+            var name = $(e.relatedTarget).data('name');
+            var code = $(e.relatedTarget).data('code');
+            var request_type = $(e.relatedTarget).data('type');
+
+            if (request_type == 'Add') {
+                $("#deleteDataButton").hide();
+                $("#learnCommandButton").show();
+                $("#sendCommandButton").show();
+                $("#selectedDevice").show();
+            } else {
+                $("#deleteDataButton").show();
+                $("#learnCommandButton").hide();
+                $("#sendCommandButton").hide();
+                $("#selectedDevice").hide();
+            }
+            //alert(index + " " + name + " " + code + " " + request_type);
+            //populate the textbox
+            $(".modal-body #index").val(index);
+            $(".modal-body #name").val(name);
+            $(".modal-body #code").val(code);
+            $("#registerDataButton").text(request_type);
+
+        });
+    </script>
+
+{% endblock javascripts %}

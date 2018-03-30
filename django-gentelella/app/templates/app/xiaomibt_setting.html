@@ -1,0 +1,188 @@
+{% extends "app/base_site.html" %}
+
+{% block title %} Xiaomi BT Setting {% endblock title %}
+
+{% block stylesheets %}
+    {{ block.super }}
+    <!-- jQuery custom content scroller -->
+    <link href="/static/vendors/malihu-custom-scrollbar-plugin/jquery.mCustomScrollbar.min.css" rel="stylesheet"/>
+{% endblock stylesheets %}
+
+{% block sidebar_class %}nav-md menu_fixed{% endblock sidebar_class %}
+
+{% block content %}
+    <div class="right_col" role="main">
+    <link rel="stylesheet" type="text/css" href="/static/vendors/jQuery-Plugin-To-Handle-CSS3-Powered-Spinners-Loaders-Loading-js/dist/loading.min.css" />
+
+        <div class="x_content">
+            <div class="page-title">
+                <h3>
+                    Configuration
+                </h3>
+
+                <div class="x_content">
+
+                    <div class="form-group">
+                        <div class="col-md-9 col-sm-9 col-xs-12">
+                            <label for="usr">Xiaomi BT Daemon Running State:</label>
+                            <label for="usr" id="daemon_state" style="color: red;font: bold 1.5em">{{ daemon_state }}</label>
+                        </div>
+                        <br>
+                        <br>
+
+                        <div class="col-md-9 col-sm-9 col-xs-12">
+                            <label for="usr">ST IP Address:</label>
+                            <input type="text" class="form-control" id="st_address" value={{ setting.ip }}>
+                        </div>
+
+                        <div class="col-md-9 col-sm-9 col-xs-12">
+                            <label for="pwd">BT Interface:</label>
+                            <select class="form-control" id="bt_iface" value={{ setting.iface }}>
+                            </select>
+                        </div>
+
+                        <div class="col-md-9 col-sm-9 col-xs-12">
+                            <label for="pwd">Report Threshold</label>
+                            <input type="text" class="form-control" id="bt_threshold" value={{ setting.threshold }}>
+                        </div>
+
+                    </div>
+                    <div class="x_content">
+                        <button type="button" class="btn btn-info registerButton" id="registerDataButton">SAVE</button>
+                        <button type="button" class="btn btn-info startServerButton" id="startServerButton">Start Xiaomi BT Daemon</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock content %}
+
+{% block javascripts %}
+    {{ block.super }}
+    <script>
+        $(document).on("click", "#registerDataButton", function () {
+            showLoading();
+            var st_address = $("#st_address").val();
+            var bt_iface = $("#bt_iface").val();
+            //var e = document.getElementById("bt_iface");
+            //var bt_iface = e.options[e.selectedIndex].value;
+
+            var bt_threshold = $("#bt_threshold").val();
+            if (st_address == "" || bt_iface == "" || bt_threshold == "") {
+                alert("Fill the blank.");
+                return;
+            }
+
+            var $this = $(this);
+            var button_value = $this.text()
+            var request_url = "/xiaomibt/setting/create";
+            var request_type = "POST";
+            if (button_value == "Update") {
+                request_url = "/xiaomibt/setting/edit/" + dev_id
+                request_type = "POST";
+            }
+
+            //alert(st_address + " " + bt_iface + " " + bt_threshold)
+
+            $.ajax({
+                url: request_url,
+                type: request_type,
+                data: {'ip': st_address, 'iface': bt_iface, 'threshold': bt_threshold},
+                beforeSend: function (xhr) {
+                    xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+                },
+                success: function (result) {
+                    $this.button('reset');
+                    alert(result.message);
+                    hideLoading();
+                    location.reload();
+                },
+                error: function (result) {
+                    $this.button('reset');
+                    alert(result.message);
+                    hideLoading();
+                }
+            });
+
+
+        });
+
+        function showLoading() {
+            $.showLoading({
+                name: 'jump-pulse'
+            });
+        }
+
+        function hideLoading() {
+            $.hideLoading();
+        }
+
+        // using jQuery
+        function getCookie(name) {
+            var cookieValue = null;
+            if (document.cookie && document.cookie != '') {
+                var cookies = document.cookie.split(';');
+                for (var i = 0; i < cookies.length; i++) {
+                    var cookie = jQuery.trim(cookies[i]);
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        $(document).on("click", "#startServerButton", function () {
+            //showLoading();
+            $.ajax({
+                type: 'GET',
+                url: '/xiaomibt/api/start_daemon',
+                dataType: 'json',
+                success: function (data) {
+                    hideLoading();
+                    if (data.result) {
+                        $('#daemon_state').text("ON");
+                    }
+                }
+            });
+
+        });
+
+        $(document).ready(function () {
+            {% if not setting %}
+                $('#startserverButton').hide();
+            {% endif %}
+            showLoading();
+
+            $.ajax({
+                type: 'GET',
+                url: '/xiaomibt/api/interfaces',
+                dataType: 'json',
+                success: function (data) {
+                    hideLoading();
+                    if (data.result) {
+                        for (var i = 0; i < data.message.length; i++) {
+                            {% if setting.iface %}
+                                if (i == {{ setting.iface }}) {
+                                    $('#bt_iface').append("<option value='" + i + "'selected=\"selected\">" + data.message[i] + "</option>");
+                                } else {
+                                    $('#bt_iface').append("<option value='" + i + "'>" + data.message[i] + "</option>");
+                                }
+                            {% else %}
+                                $('#bt_iface').append("<option value='" + i + "'>" + data.message[i] + "</option>");
+                            {% endif %}
+
+                        }
+                    }
+                }
+            });
+
+            $("#bt_iface").val({{ setting.iface }});
+        });
+    </script>
+
+{% endblock javascripts %}
+

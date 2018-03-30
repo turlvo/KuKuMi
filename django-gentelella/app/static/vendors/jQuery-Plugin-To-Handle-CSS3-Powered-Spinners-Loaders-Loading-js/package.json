@@ -1,0 +1,27 @@
+{
+    "name": "loading.js",
+    "version": "1.0.0",
+    "description": "jquery plugin loading",
+    "main": "Gruntfile.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Dn9x/loading.js.git"
+    },
+    "author": "",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/Dn9x/loading.js/issues"
+    },
+    "homepage": "https://github.com/Dn9x/loading.js#readme",
+    "devDependencies": {
+        "autoprefixer": "^6.3.6",
+        "grunt": "^1.0.1",
+        "grunt-contrib-concat": "^1.0.1",
+        "grunt-contrib-cssmin": "^1.0.1",
+        "grunt-contrib-uglify": "^1.0.1",
+        "grunt-postcss": "^0.8.0"
+    }
+}

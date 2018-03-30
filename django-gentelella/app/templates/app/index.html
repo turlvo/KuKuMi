@@ -1,0 +1,210 @@
+{% extends "app/base_site.html" %}
+
+{% block title %} KuKu Mi Home {% endblock title %}
+
+{% block stylesheets %}
+    {{ block.super }}
+{% endblock stylesheets %}
+
+{% block content %}
+    <div class="right_col" role="main">
+    <div class="">
+        <div class="col-md-6 col-sm-6 col-xs-12">
+            <div class="x_panel">
+                <div class="x_title">
+                    <h2><i class="fa fa-bars"></i> Mi Remote
+                        <small>Float left</small>
+                    </h2>
+                    <div class="clearfix"></div>
+                </div>
+                <div class="x_content">
+                    <div class="" role="tabpanel" data-example-id="togglable-tabs">
+                        <h4>
+                            Device List
+                        </h4>
+                        <table class="table table-striped jambo_table bulk_action" style="table-layout:fixed">
+                            <thead>
+                                <tr class="headings">
+                                    <th>Device Name</th>
+                                    <th>Device IP</th>
+                                    <th>Device Token</th>
+                                </tr>
+                            </thead>
+                            {% for item in miremote_devices %}
+                                <tr>
+                                    <td>{{ item.name }}</td>
+                                    <td>{{ item.ip }}</td>
+                                    <td style="overflow: hidden; text-overflow: ellipsis; width: 500px;">{{ item.token }}</td>
+                                </tr>
+                            {% endfor %}
+                        </table>
+
+                        <h4>
+                            Command List
+                        </h4>
+                        <table class="table table-striped jambo_table bulk_action" style="table-layout:fixed">
+                            <thead>
+                                <tr class="headings">
+                                    <th>Command Name</th>
+                                    <th>Command Code</th>
+                                </tr>
+                            </thead>
+                            {% for item in miremote_commands %}
+                                <tr>
+                                    <td>{{ item.name }}</td>
+                                    <td style="overflow: hidden; text-overflow: ellipsis; width: 500px;">{{ item.code }}</td>
+                                </tr>
+                            {% endfor %}
+                        </table>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+
+        <div class="col-md-6 col-sm-6 col-xs-12">
+            <div class="x_panel">
+                <div class="x_title">
+                    <h2><i class="fa fa-bars"></i> Xiaomi BT
+                        <small>
+                            <label for="usr">Xiaomi BT Daemon Running State:</label>
+                            <label for="usr" id="daemon_state" style="color: red;font: bold 1.5em">{{ daemon_state }}</label>
+                        </small>
+                    </h2>
+                    <div class="clearfix"></div>
+                </div>
+                <div class="x_content">
+                    <div class="" role="tabpanel" data-example-id="togglable-tabs">
+                        <h4>
+                            Configuration
+                        </h4>
+                        <table class="table table-striped jambo_table bulk_action" style="table-layout:fixed">
+                            <thead>
+                                <tr class="headings">
+                                    <th>ST IP Address</th>
+                                    <th>Bluetooth Interface</th>
+                                    <th>Report Threshold</th>
+                                </tr>
+                            </thead>
+
+                            <tr>
+                                <td>{{ xiaomibt_setting.ip }}</td>
+                                <td>{{ xiaomibt_setting.iface }}</td>
+                                <td>{{ xiaomibt_setting.threshold }}</td>
+                            </tr>
+                        </table>
+
+                        <h4>
+                            Device List
+                        </h4>
+                        <table class="table table-striped jambo_table bulk_action">
+                            <thead>
+                                <tr class="headings">
+                                    <th>Device Name</th>
+                                    <th>MAC address</th>
+                                </tr>
+                            </thead>
+                            {% for item in xiaomibt_devices %}
+                                <tr>
+                                    <td>{{ item.name }}</td>
+                                    <td>{{ item.mac }}</td>
+                                </tr>
+                            {% endfor %}
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="clearfix"></div>
+
+        <!--
+                <div class="col-md-6 col-sm-6 col-xs-12">
+                    <div class="x_panel">
+                        <div class="x_title">
+                            <h2><i class="fa fa-bars"></i> ...
+                                <small>Float left</small>
+                            </h2>
+
+                            <div class="clearfix"></div>
+                        </div>
+                        <div class="x_content">
+                            <div class="" role="tabpanel" data-example-id="togglable-tabs">
+
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-sm-6 col-xs-12">
+                    <div class="x_panel">
+                        <div class="x_title">
+                            <h2><i class="fa fa-bars"></i> ...
+                                <small>Float right</small>
+                            </h2>
+
+                            <div class="clearfix"></div>
+                        </div>
+                        <div class="x_content">
+                            <div class="x_content">
+                                <div class="" role="tabpanel" data-example-id="togglable-tabs">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="clearfix"></div>
+        -->
+
+    </div>
+
+{% endblock content %}
+
+{% block javascripts %}
+    {{ block.super }}
+    <!-- Chart.js -->
+    <script src="/static/vendors/Chart.js/dist/Chart.min.js"></script>
+    <!-- gauge.js -->
+    <script src="/static/vendors/gauge.js/dist/gauge.min.js"></script>
+    <!-- Skycons -->
+    <script src="/static/vendors/skycons/skycons.js"></script>
+    <!-- Flot -->
+    <script src="/static/vendors/Flot/jquery.flot.js"></script>
+    <script src="/static/vendors/Flot/jquery.flot.pie.js"></script>
+    <script src="/static/vendors/Flot/jquery.flot.time.js"></script>
+    <script src="/static/vendors/Flot/jquery.flot.stack.js"></script>
+    <script src="/static/vendors/Flot/jquery.flot.resize.js"></script>
+    <!-- Flot plugins -->
+    <script src="/static/vendors/flot.orderbars/js/jquery.flot.orderBars.js"></script>
+    <script src="/static/vendors/flot-spline/js/jquery.flot.spline.min.js"></script>
+    <script src="/static/vendors/flot.curvedlines/curvedLines.js"></script>
+    <!-- DateJS -->
+    <script src="/static/vendors/DateJS/build/date.js"></script>
+    <!-- JQVMap -->
+    <script src="/static/vendors/jqvmap/dist/jquery.vmap.js"></script>
+    <script src="/static/vendors/jqvmap/dist/maps/jquery.vmap.world.js"></script>
+    <script src="/static/vendors/jqvmap/examples/js/jquery.vmap.sampledata.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('#id_btn_discover').on('click', function () {
+                var form = $(this).closest("form");
+                $('body').loading({
+                    stoppable: false
+                });
+                $.ajax({
+                    type: 'GET',
+                    url: $("#id_btn_discover").attr("data-exec-url"),
+                    dataType: 'json',
+                    success: function (data) {
+                        $('body').loading('stop');
+                        if (data.result) {
+                            var txt_timer = document.getElementById("id_txt_discover");
+                            txt_timer.innerHTML = JSON.stringify(data.message);
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+{% endblock javascripts %}

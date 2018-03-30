@@ -1,0 +1,360 @@
+{% extends "app/base_site.html" %}
+
+{% block title %} Xiaomi BT Device {% endblock title %}
+
+{% block stylesheets %}
+    {{ block.super }}
+    <!-- jQuery custom content scroller -->
+    <link href="/static/vendors/malihu-custom-scrollbar-plugin/jquery.mCustomScrollbar.min.css" rel="stylesheet"/>
+{% endblock stylesheets %}
+
+{% block sidebar_class %}nav-md menu_fixed{% endblock sidebar_class %}
+
+{% block content %}
+    <div class="right_col" role="main">
+        <div class="x_content">
+            <div class="page-title">
+
+                <h3>
+                    Device List
+                </h3>
+
+                <table class="table table-striped jambo_table bulk_action" style="table-layout:fixed">
+                    <thead>
+                        <tr class="headings">
+                            <th>Device Name</th>
+                            <th>Device IP</th>
+                            <th>Device Token</th>
+                        </tr>
+                    </thead>
+                    {% for item in devices %}
+                        <tr data-toggle="modal" data-target="#myModal"
+                                   data-index={{ item.id }} data-name={{ item.name }}
+                                   data-ip={{ item.ip }} data-token={{ item.token }} data-type="Update" style="cursor:pointer;">
+                            <td id="index" style="display:none;"> {{ item.id }} </td>
+                            <td>{{ item.name }}</td>
+                            <td>{{ item.ip }}</td>
+                            <td style="overflow: hidden; text-overflow: ellipsis; width: 500px;">{{ item.token }}</td>
+                        </tr>
+                    {% endfor %}
+                </table>
+
+                <div>
+                    <button type="button" class="btn btn-info registerAutoButton" data-toggle="modal"
+                            data-target="#autoAddModal"
+                            data-type="Add">
+                        Auto Add
+                    </button>
+                    <button type="button" class="btn btn-info registerButton" data-toggle="modal" data-target="#myModal"
+                            data-type="Add">Manual Add
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="myModal" role="dialog">
+        <div class="modal-dialog">
+
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Add device</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group" style="display:none;">
+                        <input type="text" class="form-control" id="index">
+                    </div>
+                    <div class="form-group">
+                        <label for="usr">Device Name:</label>
+                        <input type="text" class="form-control" id="name">
+                    </div>
+                    <div class="form-group">
+                        <label for="pwd">Device IP:</label>
+                        <input type="text" class="form-control" id="ip">
+                    </div>
+                    <div class="form-group">
+                        <label for="pwd">Device Token:</label>
+                        <input type="text" class="form-control" id="token">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-info deleteButton" id="deleteDataButton">Delete</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal" id="registerDataButton">OK
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="autoAddModal" role="dialog">
+        <div class="modal-dialog">
+
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Add device</h4>
+                </div>
+                <div class="modal-body">
+                    <table class="table" id="autoAddModal_table" style="table-layout:fixed">
+
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal" id="registerDataAutoButton">Add
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock content %}
+
+{% block javascripts %}
+    {{ block.super }}
+    <!-- jQuery custom content scroller -->
+    <script src="/static/vendors/malihu-custom-scrollbar-plugin/jquery.mCustomScrollbar.concat.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('#id_btn_discover').on('click', function () {
+                var form = $(this).closest("form");
+                $.ajax({
+                    type: 'GET',
+                    url: $("#id_btn_discover").attr("data-exec-url"),
+                    dataType: 'json',
+                    success: function (data) {
+                        if (data.result) {
+                            var txt_timer = document.getElementById("id_txt_discover");
+                            txt_timer.innerHTML = JSON.stringify(data.message);
+                        }
+                    }
+                });
+            });
+        });
+
+
+        //triggered when autoAddModal is about to be shown
+        $('#autoAddModal').on('show.bs.modal', function (e) {
+            showLoading();
+            $.ajax({
+                type: 'GET',
+                url: '/miremote/api/device/discover',
+                dataType: 'json',
+                success: function (data) {
+                    hideLoading();
+                    if (data.result) {
+                        console.log(data.message)
+                        $('#autoAddModal_table').empty();
+                        $('#autoAddModal_table').append("<tr><th></th><th>Device ID</th><th>Device IP</th><th>Device Token</th></tr>");
+                        for (var i = 0; i < data.message.length; i++) {
+                            $('#autoAddModal_table').append("<tr><td><input type='checkbox'></td><td id='name'>"
+                                + data.message[i]['dev_ID'] + "</td><td id='ip'>"
+                                + data.message[i]['ip'] + "</td><td id='token' style='overflow: hidden; text-overflow: ellipsis; width: 500px;'>"
+                                + data.message[i]['token'] + "</td></tr>");
+                        }
+                    }
+                }
+            });
+        });
+
+        $(document).on("click", "#registerDataAutoButton", function () {
+            showLoading();
+            $('#autoAddModal_table input:checkbox:checked').each(function () {
+
+            });
+            var selectedRows = $('table.table').find('tr') // select all rows that has
+                .has('input[type=checkbox]:checked') // checked checkbox element
+            var $this = $(this);
+            selectedRows.each(function () {
+                var name = $(this).children().eq(1).text();
+                var ip = $(this).children().eq(2).text();
+                var token = $(this).children().eq(3).text();
+                console.log($(this).children())
+                //alert(name + " " + mac);
+
+                $.ajax({
+                    url: "/miremote/device/create",
+                    type: "POST",
+                    beforeSend: function (xhr) {
+                        xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+                    },
+                    data: {'name': name, 'ip': ip, 'token': token},
+                    success: function (result) {
+                        $this.button('reset');
+                        alert(result.message);
+                        hideLoading();
+                        location.reload();
+                    },
+                    error: function (result) {
+                        $this.button('reset');
+                        alert(result.message);
+                        hideLoading();
+                    }
+                });
+            });
+
+        });
+
+        $(document).on("click", "#registerDataButton", function () {
+            showLoading();
+            var index = $(".modal-body #index").val();
+            var name = $("#name").val();
+            var ip = $("#ip").val();
+            var token = $("#token").val();
+
+
+            if (name == "" || ip == "" || token == "") {
+                alert("Fill the blank.");
+                return;
+            }
+            var $this = $(this);
+            var button_value = $this.text()
+            var request_url = "/miremote/device/create";
+            var request_type = "POST";
+            if (button_value == "Update") {
+                request_url = "/miremote/device/edit/" + index
+                request_type = "POST";
+            }
+            //alert(name + " " + ip + " " + token);
+
+            $.ajax({
+                url: request_url,
+                type: request_type,
+                data: {'name': name, 'ip': ip, 'token': token},
+                beforeSend: function (xhr) {
+                    xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+                },
+                success: function (result) {
+                    $this.button('reset');
+                    alert(result.message);
+                    hideLoading();
+                    location.reload();
+                },
+                error: function (result) {
+                    $this.button('reset');
+                    alert(result.message);
+                    hideLoading();
+                }
+            });
+
+        });
+
+
+        $(document).on("click", ".deleteButton", function () {
+            showLoading();
+            var index = $(".modal-body #index").val();
+            var $this = $(this);
+            $.ajax({
+                url: "/miremote/device/delete/" + index,
+                type: 'DELETE',
+                beforeSend: function (xhr) {
+                    xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+                },
+                success: function (result) {
+                    $this.button('reset');
+                    alert(result);
+                    hideLoading();
+                    location.reload();
+                },
+                error: function (result) {
+                    $this.button('reset');
+                    alert(result.message);
+                    hideLoading();
+                }
+            });
+
+            $this.button('loading');
+        });
+
+        function showLoading() {
+            $.showLoading({
+                name: 'jump-pulse'
+            });
+        }
+
+        function hideLoading() {
+            $.hideLoading();
+        }
+
+        $(document).on("click", ".registerAutoButton", function () {
+            showLoading();
+            var $this = $(this);
+            var button_value = $this.text()
+            $.ajax({
+                type: 'POST',
+                data: {isTest: true},
+                url: '/miremote/api/device/discover',
+                dataType: 'json',
+                beforeSend: function (xhr) {
+                    xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+                },
+                success: function (data) {
+                    hideLoading();
+                    $this.button('reset');
+                    if (data.result) {
+                        console.log(data.message);
+                        for (var i = 0; i < data.message.length; i++) {
+                            $(".modal-body #ip").val(data.message[i]['ip']);
+                            $(".modal-body #token").val(data.message[i]['token']);
+                        }
+                    }
+                }
+            });
+            $this.button('discovering...');
+
+        });
+
+        // using jQuery
+        function getCookie(name) {
+            var cookieValue = null;
+            if (document.cookie && document.cookie != '') {
+                var cookies = document.cookie.split(';');
+                for (var i = 0; i < cookies.length; i++) {
+                    var cookie = jQuery.trim(cookies[i]);
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+    </script>
+
+    <script>
+        //triggered when modal is about to be shown
+        $('#myModal').on('show.bs.modal', function (e) {
+            showLoading();
+            //get data-id attribute of the clicked element
+            var index = $(e.relatedTarget).data('index');
+            var name = $(e.relatedTarget).data('name');
+            var ip = $(e.relatedTarget).data('ip');
+            var token = $(e.relatedTarget).data('token');
+            var request_type = $(e.relatedTarget).data('type');
+
+            if (request_type == 'Add') {
+                $("#deleteDataButton").hide();
+                $("#discoverDeviceButton").show();
+            } else {
+                $("#deleteDataButton").show();
+                $("#discoverDeviceButton").hide();
+            }
+            //alert(index + " " + name + " " + ip + " " + token + " " + request_type);
+            //populate the textbox
+            $(".modal-body #index").val(index);
+            $(".modal-body #name").val(name);
+            $(".modal-body #ip").val(ip);
+            $(".modal-body #token").val(token);
+            $("#registerDataButton").text(request_type);
+            hideLoading();
+
+        });
+    </script>
+
+{% endblock javascripts %}

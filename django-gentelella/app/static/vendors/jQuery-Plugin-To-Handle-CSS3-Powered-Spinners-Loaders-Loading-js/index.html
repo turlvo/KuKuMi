@@ -1,0 +1,75 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>jQuery Loading.js Loader Plugin Demos</title>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.5/css/bootstrap.min.css" integrity="sha384-AysaV+vQoT3kOAXZkl02PThvDr8HYKPZhNT5h/CXfBThSRXQ6jW5DO2ekP5ViFdi" crossorigin="anonymous">
+<link href="dist/loading.min.css" rel="stylesheet" type="text/css">
+<style>
+.container { margin:70px auto;}
+</style>
+</head>
+
+<body>
+<div class="container">
+<h1>jQuery Loading.js Loader Plugin Demos</h1>
+<div class="jquery-script-ads" style="margin:50px auto"><script type="text/javascript"><!--
+google_ad_client = "ca-pub-2783044520727903";
+/* jQuery_demo */
+google_ad_slot = "2780937993";
+google_ad_width = 728;
+google_ad_height = 90;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script></div>
+<button class="btn btn-primary demo1">line-pulse</button>
+<button class="btn btn-primary demo2">jump-pulse</button>
+<button class="btn btn-primary demo3">circle-turn</button>
+<button class="btn btn-primary demo4">circle-turn-scale</button>
+<button class="btn btn-primary demo5">circle-fade</button>
+<button class="btn btn-primary demo6">square-flip</button>
+<button class="btn btn-primary demo7">line-scale</button>
+</div>
+<script src="http://code.jquery.com/jquery-1.12.4.min.js"></script>
+<script src="dist/jquery.loading.min.js"></script>
+<script>
+$( ".demo1" ).click(function() {
+$.showLoading({allowHide: true});  
+});
+$( ".demo2" ).click(function() {
+$.showLoading({name: 'jump-pulse',allowHide: true});  
+});
+$( ".demo3" ).click(function() {
+$.showLoading({name: 'circle-turn',allowHide: true});  
+});
+$( ".demo4" ).click(function() {
+$.showLoading({name: 'circle-turn-scale',allowHide: true});  
+});
+$( ".demo5" ).click(function() {
+$.showLoading({name: 'circle-fade',allowHide: true});  
+});
+$( ".demo6" ).click(function() {
+$.showLoading({name: 'square-flip',allowHide: true});  
+});
+$( ".demo7" ).click(function() {
+$.showLoading({name: 'line-scale',allowHide: true});  
+});
+</script>
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-36251023-1']);
+  _gaq.push(['_setDomainName', 'jqueryscript.net']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+</body>
+</html>
