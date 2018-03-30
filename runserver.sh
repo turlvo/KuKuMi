@@ -1,7 +1,7 @@
 #!/bin/sh
 echo "Updating KuKuMi..."
 cd /root/KuKuMi
-./update.sh
+git pull
 
 echo ""
 cd /root/KuKuMi/xiaomibt-daemon
