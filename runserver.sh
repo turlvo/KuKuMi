@@ -1,6 +1,7 @@
 #!/bin/sh
 echo "Updating KuKuMi..."
 cd /root/KuKuMi
+git checkout -f
 git pull
 
 echo ""
