@@ -7,7 +7,7 @@
 #define WIFI_PASSWORD "WIFI PASSWORD"
 #define POST_URL "KuKu Mi's Xiaomi BT daemon server IP" // ex) http://192.168.1.137:39501
 #define SCAN_TIME  15 // seconds
-#define SLEEP_TIME  3 // seconds
+#define SLEEP_TIME  0 // seconds
 
 #include <Arduino.h>
 #include <sstream>
@@ -26,6 +26,7 @@
 #include "soc/rtc_cntl_reg.h"
 
 WiFiMulti wifiMulti;
+BLEScan *pBLEScan;
 
 class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks {
     void onResult(BLEAdvertisedDevice advertisedDevice)
@@ -59,7 +60,7 @@ class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks {
                     Serial.printf("TEMPERATURE_AND_HUMIDITY_EVENT: %02X %02X /  %02X %02X\n", cServiceData[15], cServiceData[14], cServiceData[17], cServiceData[16]);
                     break;              
             }
-			
+
             std::stringstream ss;
             ss << "fe95" << charServiceData;
    
@@ -101,6 +102,22 @@ class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks {
     }
 };
 
+void WiFiEvent(WiFiEvent_t event)
+{
+    Serial.printf("[WiFi-event] event: %d\n", event);
+
+    switch(event) {
+    case SYSTEM_EVENT_STA_GOT_IP:
+        Serial.println("WiFi connected");
+        Serial.println("IP address: ");
+        Serial.println(WiFi.localIP());
+        break;
+    case SYSTEM_EVENT_STA_DISCONNECTED:
+        Serial.println("WiFi lost connection");
+        break;
+    }
+}
+
 void setup()
 {
     WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0); //disable brownout detector
@@ -108,28 +125,28 @@ void setup()
     Serial.begin(115200);
     Serial.println("ESP32 BLE Scanner");
 
+    WiFi.onEvent(WiFiEvent);
     wifiMulti.addAP(WIFI_SSID, WIFI_PASSWORD);
 
     BLEDevice::init("");
+
+    // put your main code here, to run repeatedly:
+    pBLEScan = BLEDevice::getScan(); //create new scan
+    pBLEScan->setAdvertisedDeviceCallbacks(new MyAdvertisedDeviceCallbacks());
+    pBLEScan->setActiveScan(true); //active scan uses more power, but get results faster
+    pBLEScan->setInterval(0x50);
+    pBLEScan->setWindow(0x30);
 }
 
 void loop() {
     // wait for WiFi connection
     if ((wifiMulti.run() == WL_CONNECTED)) {
-        Serial.println("WiFi Connected");
-
-        // put your main code here, to run repeatedly:
-        BLEScan *pBLEScan = BLEDevice::getScan(); //create new scan
-        pBLEScan->setAdvertisedDeviceCallbacks(new MyAdvertisedDeviceCallbacks());
-        pBLEScan->setActiveScan(false); //active scan uses more power, but get results faster
-        pBLEScan->setInterval(240);
-        pBLEScan->setWindow(240);
 
         Serial.printf("Start BLE scan for %d seconds...\n", SCAN_TIME);
         BLEScanResults foundDevices = pBLEScan->start(SCAN_TIME);
         //int count = foundDevices.getCount();
 
-
+        delay(5000);
 #if SLEEP_TIME > 0
         esp_sleep_enable_timer_wakeup(SLEEP_TIME * 1000000); // translate second to micro second
         Serial.printf("Enter deep sleep for %d seconds...\n", (SLEEP_TIME));
@@ -141,4 +158,3 @@ void loop() {
     // wait WiFi connected
     delay(1000);
 }
-
