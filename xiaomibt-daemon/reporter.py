@@ -7,6 +7,7 @@ import os.path
 
 CONST_CONFIG_HUB_ADDRESS_FILE = '/tmp/xiaomibt-daemon.hubaddr'
 CONST_CONFIG_THRESHOLD_FILE = '/tmp/xiaomibt-daemon.threshold'
+CONST_CONFIG_SCAN_RESULT_FILE = '/tmp/xiaomibt-daemon.scanresult'
 
 CONST_ADV_TEMPERATURE_FIELD = (
 "UUID", "Flag", "ID", "Index", "MAC", "MAC", "MAC", "MAC", "MAC", "MAC", "DataType", "Length", "Temperature")
@@ -27,33 +28,35 @@ CONST_TEMPERATURE_AND_HUMIDITY_EVENT = 4109
 class Global(object):
     before_temperature = {}
     before_humidity = {}
+    scan_results = []
 
 
 class Reporter(threading.Thread):
-    def __init__(self, queue, threshold=0.1):
+    def __init__(self, queue):
         threading.Thread.__init__(self)
 
         self.hub_address = None
-        self.threshold = threshold
+        self.threshold = 0.1
         self.before_temperature = {}
         self.before_humidity = {}
 
         self.data_queue = queue
         self.data_queue_runnable = True
 
+
     def putData(self, data):
         self.data_queue.put_nowait(data)
 
     def run(self):
+        if (os.path.isfile(CONST_CONFIG_HUB_ADDRESS_FILE)):
+            self.hub_address = open(CONST_CONFIG_HUB_ADDRESS_FILE, 'r').readline()
+            print("read hub address : %s" % (self.hub_address))
+
+        if (os.path.isfile(CONST_CONFIG_THRESHOLD_FILE)):
+            self.threshold = float(open(CONST_CONFIG_THRESHOLD_FILE, 'r').readline())
+            print("read threshold: %s" % (self.threshold))
+
         while self.data_queue_runnable:
-            if (os.path.isfile(CONST_CONFIG_HUB_ADDRESS_FILE)):
-                self.hub_address = open(CONST_CONFIG_HUB_ADDRESS_FILE, 'r').readline()
-                print("read hub address : %s" % (self.hub_address))
-
-            if (os.path.isfile(CONST_CONFIG_THRESHOLD_FILE)):
-                self.threshold = float(open(CONST_CONFIG_THRESHOLD_FILE, 'r').readline())
-                print("read threshold: %s" % (self.threshold))
-
             data = self.data_queue.get()
             # print ("Reporter>> data : %s" % (data))
             self.parse_data(data)
@@ -125,6 +128,15 @@ class Reporter(threading.Thread):
             print('Error in main %s' % str(error))
 
     def report_value(self, report_type, dic_data):
+        if dic_data['MAC'] not in Global.scan_results:
+            Global.scan_results.append(dic_data['MAC'])
+
+            with open(CONST_CONFIG_SCAN_RESULT_FILE, 'w') as f:
+                for device in Global.scan_results:
+                    f.write("{}\n".format(device))
+                print("Writing to file : %s" % Global.scan_results)
+
+
         header = {'Content-Type': 'application/json; charset=utf-8'}
         url = 'http://' + self.hub_address + ':39500/xiaomibt/event'
 

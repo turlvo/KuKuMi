@@ -6,8 +6,8 @@
 #define WIFI_SSID "WIFI SSID"
 #define WIFI_PASSWORD "WIFI PASSWORD"
 #define POST_URL "KuKu Mi's Xiaomi BT daemon server IP" // ex) http://192.168.1.137:39501
-#define SCAN_TIME  30 // seconds
-#define SLEEP_TIME  0 // seconds
+#define SCAN_TIME  15 // seconds
+#define SLEEP_TIME  3 // seconds
 
 #include <Arduino.h>
 #include <sstream>
@@ -121,9 +121,9 @@ void loop() {
         // put your main code here, to run repeatedly:
         BLEScan *pBLEScan = BLEDevice::getScan(); //create new scan
         pBLEScan->setAdvertisedDeviceCallbacks(new MyAdvertisedDeviceCallbacks());
-        pBLEScan->setActiveScan(true); //active scan uses more power, but get results faster
-        pBLEScan->setInterval(0x50);
-        pBLEScan->setWindow(0x30);
+        pBLEScan->setActiveScan(false); //active scan uses more power, but get results faster
+        pBLEScan->setInterval(240);
+        pBLEScan->setWindow(240);
 
         Serial.printf("Start BLE scan for %d seconds...\n", SCAN_TIME);
         BLEScanResults foundDevices = pBLEScan->start(SCAN_TIME);

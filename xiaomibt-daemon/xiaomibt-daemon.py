@@ -41,36 +41,21 @@ class XiaomiBTDaemon(Daemon):
         self.data_reporter.start()
         self.bridge_server.start()
 
+        if (os.path.isfile(CONST_CONFIG_IFACE_FILE)):
+            self.iface = int(open(CONST_CONFIG_IFACE_FILE, 'r').readline())
+            print("read iface : %s" % (self.iface))
+
         while True:
             if (os.path.isfile(CONST_CONFIG_PID_FILE) == False):
                 self.data_reporter.stop()
                 self.bridge_server.stop()
                 print("release server, reporter")
 
-            if (os.path.isfile(CONST_CONFIG_IFACE_FILE)):
-                self.iface = int(open(CONST_CONFIG_IFACE_FILE, 'r').readline())
-                print("read iface : %s" % (self.iface))
-
             try:
                 self.scanner = Scanner(1).withDelegate(ScanDelegate(self.data_reporter))
                 self.found_devices = self.scanner.scan(10.0)
             except BTLEException as error:
                 print ('Error in main %s' % str(error))
-            
-            for device in self.found_devices:
-                localname = device.getValueText(9)
-                if not localname: continue
-
-                if localname.startswith("MJ_HT_V1"):
-                    #print("Device address: {0}, RSSI: {1}\n".format(device.addr, device.rssi))
-                    #data = {'mac': device.addr, 'rssi': device.rssi}
-                    if device.addr not in Global.scan_results:
-                        Global.scan_results.append(device.addr)
-                    #json.dump(data, f)
-            with open(CONST_CONFIG_SCAN_RESULT_FILE, 'w') as f:
-                for device in Global.scan_results:
-                    f.write("{}\n".format(device))
-                print("Writing to file : %s" % Global.scan_results)
 
             time.sleep(2)
 

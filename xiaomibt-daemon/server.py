@@ -25,5 +25,5 @@ class AduinoEventHandler(BaseHTTPRequestHandler):
         data = self.rfile.read(content_length).decode('utf-8')
         print("AduinoEventHandler>>", data)
         Global.data_reporter.putData(data)
-        self.send_response(200)  # 응답코드
+        self.send_response(200)
         self.end_headers()

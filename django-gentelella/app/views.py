@@ -143,6 +143,7 @@ def xiaomibt_setting_create(request):
             xiaomi_setting = XiaomiBTSetting.objects.all().first()
             print(xiaomi_setting)
             send_option_to_daemon(xiaomi_setting.ip, xiaomi_setting.iface, xiaomi_setting.threshold)
+            send_start_to_daemon()
 
             data = {
                 'result': 'OK',
@@ -317,13 +318,12 @@ def xiaomibt_dev_list(request):
 
 
 def send_option_to_daemon(ip, iface, threshold):
-    p = subprocess.Popen(["python", "/root/KuKuMi/xiaomibt-daemon/xiaomibt-daemon.py", "set", iface, ip, threshold])
+    p = subprocess.Popen(["python", "../xiaomibt-daemon/xiaomibt-daemon.py", "set", iface, ip, threshold])
     return (p.communicate()[0])
 
 
 def send_scan_to_daemon():
-    p = subprocess.Popen(["python", "/root/KuKuMi/xiaomibt-daemon/xiaomibt-daemon.py", "scanresult"],
-                         stdout=subprocess.PIPE)
+    p = subprocess.Popen(["python", "../xiaomibt-daemon/xiaomibt-daemon.py", "scanresult"], stdout=subprocess.PIPE)
     """while True:
         output = p.stdout.readline()
         if output == '' and p.poll() is not None:
@@ -334,13 +334,12 @@ def send_scan_to_daemon():
     return (p.communicate()[0]).decode('utf-8')
 
 def send_get_state_to_daemon():
-    p = subprocess.Popen(["python", "/root/KuKuMi/xiaomibt-daemon/xiaomibt-daemon.py", "state"],
-                         stdout=subprocess.PIPE)
+    p = subprocess.Popen(["python", "../xiaomibt-daemon/xiaomibt-daemon.py", "state"], stdout=subprocess.PIPE)
     return (p.communicate()[0]).decode('utf-8')
 
 
 def send_start_to_daemon():
-    p = subprocess.Popen(["python", "/root/KuKuMi/xiaomibt-daemon/xiaomibt-daemon.py", "restart"])
+    p = subprocess.Popen(["python", "../xiaomibt-daemon/xiaomibt-daemon.py", "restart"])
     return (p.communicate()[0])
 
 
@@ -355,20 +354,20 @@ def discover_bluetooth_interface():
 
 def miremote_index(request):
     devices = MiRemoteDevice.objects.all()
-    logger.error("miremote_index")
+    logger.debug("miremote_index")
     return render(request, 'app/miremote_device.html', {'devices': devices})
 
 
 def miremote_device(request):
     devices = MiRemoteDevice.objects.all()
-    logger.error("miremote_device")
+    logger.debug("miremote_device")
     return render(request, 'app/miremote_device.html', {'devices': devices})
 
 
 def miremote_command(request):
     commands = MiRemoteCommand.objects.all()
     devices = MiRemoteDevice.objects.all()
-    logger.error("miremote_command")
+    logger.debug("miremote_command")
     return render(request, 'app/miremote_command.html', {'devices': devices, 'commands': commands})
 
 
@@ -429,7 +428,7 @@ def miremote_dev_del(request, id):
 
 
 def miremote_command_create(request):
-    logger.error("xiaomibt_setting_create")
+    logger.debug("xiaomibt_setting_create")
     if request.method == 'POST':
         form = MiRemoteCommandForm(request.POST)
         data = {}
@@ -491,7 +490,7 @@ def miremote_discover(request):
         result = Miio_api.discover()
     except:
         result = -1
-    logger.error("discover>> result : %s" % (result))
+    logger.debug("discover>> result : %s" % (result))
     if result == -1:
         data = {
             'result': False,
@@ -510,7 +509,7 @@ def miremote_learn_cmd(request, dev):
     if request.method == 'GET':
         try:
             fd = get_object_or_404(MiRemoteDevice, name=dev)
-            logger.error("learn_cmd>> device >> name: %s, ip: %s, token: %s" % (fd.name, fd.ip, fd.token))
+            logger.debug("learn_cmd>> device >> name: %s, ip: %s, token: %s" % (fd.name, fd.ip, fd.token))
         except MiRemoteDevice.DoesNotExist:
             raise Http404("No Device matches the given query.")
 
@@ -538,7 +537,7 @@ def miremote_read_cmd(request, dev):
     if request.method == 'GET':
         try:
             fd = get_object_or_404(MiRemoteDevice, name=dev)
-            logger.error("read_cmd>> device >> name: %s, ip: %s, token: %s" % (fd.name, fd.ip, fd.token))
+            logger.debug("read_cmd>> device >> name: %s, ip: %s, token: %s" % (fd.name, fd.ip, fd.token))
         except MiRemoteDevice.DoesNotExist:
             raise Http404("No Device matches the given query.")
 
@@ -553,7 +552,7 @@ def miremote_read_cmd(request, dev):
             'message': 'Failed to read command'
         }
         if result != -1:
-            logger.error("read_cmd>> result : %s" % (result['code']))
+            logger.debug("read_cmd>> result : %s" % (result['code']))
             if result['code'] != '':
                 data = {
                     'result': True,
@@ -582,14 +581,14 @@ def miremote_cmd_list(request):
 @api_view(['POST', ])
 def miremote_send_cmd(request, dev, cmd):
     is_test = json.loads(request.POST.get('isTest', 'false'))
-    logger.error("send_cmd>> device: %s, command: %s, test: %s" % (dev, cmd, is_test))
+    logger.debug("send_cmd>> device: %s, command: %s, test: %s" % (dev, cmd, is_test))
 
     if request.method == 'POST':
         try:
             fd = get_object_or_404(MiRemoteDevice, name=dev)
             target_ip = fd.ip
             target_token = fd.token
-            logger.error("send_cmd>> device >> name: %s, ip: %s, token: %s" % (fd.name, fd.ip, fd.token))
+            logger.debug("send_cmd>> device >> name: %s, ip: %s, token: %s" % (fd.name, fd.ip, fd.token))
         except MiRemoteDevice.DoesNotExist:
             raise Http404("No Device matches the given query.")
 
@@ -599,7 +598,7 @@ def miremote_send_cmd(request, dev, cmd):
             try:
                 fc = get_object_or_404(MiRemoteCommand, name=cmd)
                 command_code = fc.code
-                logger.error("send_cmd>> command >> name : %s, code: %s" % (fc.name, fc.code))
+                logger.debug("send_cmd>> command >> name : %s, code: %s" % (fc.name, fc.code))
             except MiRemoteCommand.DoesNotExist:
                 raise Http404("No Command matches the given query.")
 
