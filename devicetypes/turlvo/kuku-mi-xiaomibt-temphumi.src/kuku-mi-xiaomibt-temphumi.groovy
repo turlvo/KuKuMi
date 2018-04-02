@@ -135,7 +135,7 @@ def parse(String description) {
             log.debug "report humidity>> beforeTemp: $state.beforeTemp"        	
         	state.beforeHumidity = value
 
-            mergedValue = "${state.beforeTemp == null ? zeroUnit : state.beforeTemp}°$temperatureUnit / ${value == null ? zeroUnit : value}%"
+            mergedValue = "${state.beforeTemp == null ? zeroUnit : state.beforeTemp}°$temperatureUnit/${value == null ? zeroUnit : value}%"
             sendEvent(name:"temp&humidity", value: mergedValue, displayed: false)
         }
         
@@ -326,7 +326,7 @@ def generateEvent(Map results) {
             log.debug "report humidity>> beforeTemp: $state.beforeTemp"        	
             state.beforeHumidity = value
 
-            mergedValue = "${state.beforeTemp == null ? zeroUnit : state.beforeTemp}°$temperatureUnit / ${value == null ? zeroUnit : value}%"
+            mergedValue = "${state.beforeTemp == null ? zeroUnit : state.beforeTemp}°$temperatureUnit/${value == null ? zeroUnit : value}%"
             sendEvent(name:"temp&humidity", value: mergedValue, displayed: false)
         }
 

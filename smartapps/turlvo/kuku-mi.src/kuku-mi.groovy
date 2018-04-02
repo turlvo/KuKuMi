@@ -18,13 +18,14 @@
  *
  *  Version history
 */
-def version() {	return "v1.1.600" }
+def version() {	return "v1.2.100" }
 /*
  *  02/21/2018 >>> v1.0.000 - Release first 'KuKu Mi' SmartApp supporting 'Mi Remote'
  *  02/25/2018 >>> v1.1.000 - Added DTH Type and Device Name system 
  *  03/01/2018 >>> v1.1.500 - Modified 'Fan' DTH and added 'Light' DTH by ShinJjang
  *  03/01/2018 >>> v1.1.600 - Modified 'Aircon' and 'TV' DTH's number command routine
  *  03/21/2018 >>> v1.2.000 - Supports 'Xiaomi Mijia Bluetooth Temperature and Humidity' sensor
+ *  04/02/2018 >>> v1.2.100 - Changed deviceID rule from deviceName + input name to xiaomiType + deivce's MAC for Xiaomi BT
 */
 
 definition(
@@ -91,7 +92,7 @@ def mainPage() {
                      title: "Dashboard(Local Network Only)",
                      required: false,
                      style: "external",
-                     url: "http://${atomicState.miApiServerIP}/miremote",
+                     url: "http://${atomicState.miApiServerIP}/",
                      description: "tap to view KuKu Mi API website in mobile browser")
             }
 
@@ -577,7 +578,7 @@ def powerMonitorHandler(evt) {
     //def device = []    
     //device = getDeviceByName("$selectedDevice")
     //def deviceId = device.id
-    def deviceId = "${atomicState.device}_${atomicState.deviceName}"
+    def deviceId = "${atomicState.xiaomiDeviceType}_${atomicState.deviceName}"
     def child = getChildDevice(deviceId)
     def event
 
@@ -608,7 +609,7 @@ def contactMonitorHandler(evt) {
     //def device = []    
     //device = getDeviceByName("$selectedDevice")
     //def deviceId = device.id
-    def deviceId = "${atomicState.device}_${atomicState.deviceName}"
+    def deviceId = "${atomicState.xiaomiDeviceType}_${atomicState.deviceName}"
     def child = getChildDevice(deviceId)
     def event
 
@@ -640,6 +641,7 @@ def initializeChild() {
 	def dth_name
     def deviceId
     def label
+    def deviceLabel
     
     log.debug "addDeviceDone: $selectedDevice, xiaomi type: $atomicState.xiaomiDeviceType"   
     switch(atomicState.xiaomiDeviceType) {
@@ -653,23 +655,26 @@ def initializeChild() {
             subscribe(contactMonitor, "contact", contactMonitorHandler)
         }
         dth_name = "KuKu Mi_MiRemote_${atomicState.dthType}"
+        deviceId = "${atomicState.xiaomiDeviceType}_${atomicState.deviceName}"
         break;
         
         case "xiaomibt":
         log.debug ("mac>>>>> ${getDeviceMacByName(atomicState.device)}")
         atomicState.mac = getDeviceMacByName(atomicState.device)
         dth_name = "KuKu Mi_XiaomiBT_TempHumi"
+        deviceId = "${atomicState.xiaomiDeviceType}_${atomicState.mac}"
         break;
     }
 
 
-    deviceId = "${atomicState.device}_${atomicState.deviceName}"
+    
+    deviceLabel = "${atomicState.xiaomiDeviceType}_${atomicState.deviceName}"
     def existing = getChildDevice(deviceId)
     log.debug "addDeviceDone: deviceId: $deviceId"
-    app.updateLabel(deviceId)
+    app.updateLabel(deviceLabel)
     if (!existing) {
         def childDevice = addChildDevice("turlvo", dth_name, 
-                                         deviceId, null, ["label": deviceId])
+                                         deviceId, null, ["label": atomicState.deviceName])
     } else {
         log.debug "Device already created"
         existing.updated()
@@ -678,8 +683,6 @@ def initializeChild() {
 
 import groovy.json.JsonSlurper
 def processLANEvent(evt) {
-    def deviceId = "${atomicState.device}_${atomicState.deviceName}"
-    def child = getChildDevice(deviceId)
 
     if (evt) {
         def msg = parseLanMessage(evt.value)
@@ -708,9 +711,9 @@ def processLANEvent(evt) {
 // Parent transfer received LAN events to child app 
 def transferLANEvent(json) {
 	log.debug ("transferLANEvent>> received json data from parent App: $json")
-	//log.debug ("transferLANEvent>> current child app type: ${atomicState.xiaomiDeviceType}, device MAC: ${atomicState.mac}")
+	log.debug ("transferLANEvent>> current child app type: ${atomicState.xiaomiDeviceType}, device MAC: ${atomicState.mac}")
     if (json.device == atomicState.xiaomiDeviceType && json.mac == atomicState.mac) {
-        //log.info "Xiaomi BT Temp/Humi Evnet: report_type: ${json.report_type}, mac: ${json.mac}, temp: ${json.temperature}, humi: ${json.humidity}, battery: ${json.battery}"
+        log.info "Xiaomi BT Temp/Humi Evnet: report_type: ${json.report_type}, mac: ${json.mac}, temp: ${json.temperature}, humi: ${json.humidity}, battery: ${json.battery}"
         def event = []
         switch (json.report_type) {
         	case 'temperatureChange':
@@ -733,7 +736,7 @@ def transferLANEvent(json) {
             break
         }
         
-        def deviceId = "${atomicState.device}_${atomicState.deviceName}"
+        def deviceId = "${atomicState.xiaomiDeviceType}_${atomicState.mac}"
         def child = getChildDevice(deviceId)
         child.generateEvent(event)
     }
