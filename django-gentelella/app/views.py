@@ -566,8 +566,8 @@ def miremote_read_cmd(request, dev):
 @api_view(['GET', ])
 def miremote_dev_list(request):
     if request.method == 'GET':
-        devices = XiaomiBTDevice.objects.all()
-        serializer = XiaomiBTDeviceSerializer(devices, many=True)
+        devices = MiRemoteDevice.objects.all()
+        serializer = MiRemoteDeviceSerializer(devices, many=True)
         return Response(serializer.data)
 
 
