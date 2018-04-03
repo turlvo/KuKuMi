@@ -21,8 +21,8 @@ class Global(object):
 class XiaomiBTDaemon(Daemon):
     def __init__(self, *args, **kwargs):
         self.iface = 0
-
-        self.found_devices = None
+		
+        self.found_devices = None		
         self.before_temperature = {}
         self.before_humidity = {}
 
@@ -69,7 +69,7 @@ class XiaomiBTDaemon(Daemon):
             for device in open(CONST_CONFIG_SCAN_RESULT_FILE, 'r', encoding='utf-8'):
                 scan_result.append(device.rstrip('\n'))
         print (scan_result)
-
+    
     def getState(self):
         if (os.path.isfile(CONST_CONFIG_PID_FILE)):
             print("ON");
@@ -96,6 +96,7 @@ class XiaomiBTDaemon(Daemon):
         self.setIface(iface)
         self.setHubAddress(address)
         self.setThreshold(threshold)
+
 
 
 class ScanDelegate(DefaultDelegate):

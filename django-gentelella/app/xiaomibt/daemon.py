@@ -6,7 +6,7 @@ class Daemon:
     """A generic daemon class.
     Usage: subclass the daemon class and override the run() method."""
 
-    def __init__(self, pidfile, stdin='/dev/null', stdout='/dev/null', stderr='/dev/null'):
+    def __init__(self, pidfile, stdin='/dev/null', stdout='/dev/null', stderr='/dev/null'): 
         self.stdin = stdin
         self.stdout = stdout
         self.stderr = stderr
@@ -24,7 +24,7 @@ class Daemon:
         except OSError as err: 
             sys.stderr.write('fork #1 failed: {0}\n'.format(err))
             sys.exit(1)
-
+    
         # decouple from parent environment
         os.chdir('/') 
         os.setsid() 
@@ -40,7 +40,7 @@ class Daemon:
         except OSError as err: 
             sys.stderr.write('fork #2 failed: {0}\n'.format(err))
             sys.exit(1) 
-
+    
         # redirect standard file descriptors
         sys.stdout.flush()
         sys.stderr.flush()
@@ -51,7 +51,7 @@ class Daemon:
         #os.dup2(si.fileno(), sys.stdin.fileno())
         #os.dup2(so.fileno(), sys.stdout.fileno())
         #os.dup2(se.fileno(), sys.stderr.fileno())
-
+    
         # write pidfile
         atexit.register(self.delpid)
 
@@ -59,7 +59,8 @@ class Daemon:
         sys.stderr.write('pid : {0}'.format(pid))
         with open(self.pidfile,'w+') as f:
             f.write(pid + '\n')
-
+        
+    
     def delpid(self):
         os.remove(self.pidfile)
 
@@ -73,13 +74,13 @@ class Daemon:
                 pid = int(pf.read().strip())
         except IOError:
             pid = None
-
+    
         if pid:
             message = "pidfile {0} already exist. " + \
                     "Daemon already running?\n"
             sys.stderr.write(message.format(self.pidfile))
             sys.exit(1)
-
+        
         # Start the daemon
         self.daemonize()
         self.run()
@@ -93,7 +94,7 @@ class Daemon:
                 pid = int(pf.read().strip())
         except IOError:
             pid = None
-
+    
         if not pid:
             message = "pidfile {0} does not exist. " + \
                     "Daemon not running?\n"

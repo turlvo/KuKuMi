@@ -5,8 +5,10 @@
 
 #define WIFI_SSID "WIFI SSID"
 #define WIFI_PASSWORD "WIFI PASSWORD"
-#define POST_URL "KuKu Mi's Xiaomi BT daemon server IP" // ex) http://192.168.1.137:39501
-#define SCAN_TIME  15 // seconds
+//#define POST_URL "KuKu Mi's Xiaomi BT daemon server IP" // ex) http://192.168.1.137:39501
+#define POST_URL "192.168.1.137"  // For TCP Socket
+#define POST_PORT 39501           // For TCP Socket
+#define SCAN_TIME  60 // seconds
 #define SLEEP_TIME  0 // seconds
 
 #include <Arduino.h>
@@ -33,18 +35,16 @@ class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks {
     {
         if (advertisedDevice.haveName() && advertisedDevice.haveServiceData() && !advertisedDevice.getName().compare("MJ_HT_V1")) {
             std::string strServiceData = advertisedDevice.getServiceData();
-            uint8_t cServiceData[100];            
+            uint8_t cServiceData[100];
             char charServiceData[100];
-            
+
             strServiceData.copy((char *)cServiceData, strServiceData.length(), 0);
-            
-            Serial.printf("Advertised Device: %s\n", advertisedDevice.toString().c_str());
-            Serial.println("Payload:");
+
+            Serial.printf("\n\nAdvertised Device: %s\n", advertisedDevice.toString().c_str());
+
             for (int i=0;i<strServiceData.length();i++) {
                 sprintf(&charServiceData[i*2], "%02x", cServiceData[i]);
             }
-            Serial.println("\n");
-            Serial.printf("%s\n", charServiceData);
 
             switch (cServiceData[11]) {
                 case 0x04:
@@ -58,33 +58,36 @@ class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks {
                     break;
                 case 0x0D:
                     Serial.printf("TEMPERATURE_AND_HUMIDITY_EVENT: %02X %02X /  %02X %02X\n", cServiceData[15], cServiceData[14], cServiceData[17], cServiceData[16]);
-                    break;              
+                    break;
             }
 
             std::stringstream ss;
             ss << "fe95" << charServiceData;
-   
-            // HTTP POST BLE list
-            HTTPClient http;
-        
+
+            //  For TCP Socket
+            WiFiClient client;
+
+            if (client.connect(POST_URL, POST_PORT)) {
+                client.print(ss.str().c_str());
+                Serial.println("Send success");
+            }
+
+/*
+
             Serial.println("Payload:");
             Serial.println(ss.str().c_str());
-            Serial.println("[HTTP] begin...");    
-    
+            // HTTP POST BLE list
+            HTTPClient http;
+
             // configure traged server and url
             http.begin(POST_URL);
-    
+
             // start connection and send HTTP header
             int httpCode = http.POST(ss.str().c_str());
-    
+
             // httpCode will be negative on error
             if (httpCode > 0)
             {
-                // HTTP header has been send and Server response header has been handled
-    
-                Serial.printf("[HTTP] GET... code: %d\n", httpCode);
-    
-    
                 // file found at server
                 if (httpCode == HTTP_CODE_OK)
                 {
@@ -95,9 +98,9 @@ class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks {
             {
                 Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
             }
-    
+
             http.end();
-         
+*/
         }
     }
 };
@@ -112,12 +115,18 @@ void WiFiEvent(WiFiEvent_t event)
         Serial.println("IP address: ");
         Serial.println(WiFi.localIP());
         break;
+    case SYSTEM_EVENT_SCAN_DONE:
+        Serial.println("Scan Done");
+        break;
+    case SYSTEM_EVENT_STA_CONNECTED:
+        Serial.println("STA_CONNECTED");
+        break;
     case SYSTEM_EVENT_STA_DISCONNECTED:
         Serial.println("WiFi lost connection");
+        wifiMulti.addAP(WIFI_SSID, WIFI_PASSWORD);
         break;
     }
 }
-
 void setup()
 {
     WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0); //disable brownout detector
@@ -129,8 +138,6 @@ void setup()
     wifiMulti.addAP(WIFI_SSID, WIFI_PASSWORD);
 
     BLEDevice::init("");
-
-    // put your main code here, to run repeatedly:
     pBLEScan = BLEDevice::getScan(); //create new scan
     pBLEScan->setAdvertisedDeviceCallbacks(new MyAdvertisedDeviceCallbacks());
     pBLEScan->setActiveScan(true); //active scan uses more power, but get results faster
@@ -141,19 +148,21 @@ void setup()
 void loop() {
     // wait for WiFi connection
     if ((wifiMulti.run() == WL_CONNECTED)) {
+        Serial.println("WiFi Connected");
+
 
         Serial.printf("Start BLE scan for %d seconds...\n", SCAN_TIME);
         BLEScanResults foundDevices = pBLEScan->start(SCAN_TIME);
         //int count = foundDevices.getCount();
 
-        delay(5000);
+
 #if SLEEP_TIME > 0
         esp_sleep_enable_timer_wakeup(SLEEP_TIME * 1000000); // translate second to micro second
         Serial.printf("Enter deep sleep for %d seconds...\n", (SLEEP_TIME));
         esp_deep_sleep_start();
 
 #endif
-  
+
     }
     // wait WiFi connected
     delay(1000);
