@@ -15,20 +15,21 @@ class Server(threading.Thread):
         self.server = None
 
     def run(self):
-        print("Started WebServer on port 39501...")
-        self.sever = HTTPServer(('', self.port), AduinoEventHandler)
-        self.sever.serve_forever()
+        #print("Started WebServer on port 39501...")
+        #self.sever = HTTPServer(('', self.port), AduinoEventHandler)
+        #self.sever.serve_forever()
 
-        #self.server = socketserver.TCPServer(('', self.port), MyTCPHandler)
-        #self.server.allow_reuse_address = True
-        #self.server.serve_forever()
+        print("Started TCP Server on port 39501...")
+        self.server = socketserver.TCPServer(('', self.port), MyTCPHandler)
+        self.server.allow_reuse_address = True
+        self.server.serve_forever()
 
     def stop(self):
-        self.sever.server_close()
+        #self.sever.server_close()
 
-        #if None != self.server:
-        #    self.server.shutdown()
-        #    self.server.socket.close()
+        if None != self.server:
+            self.server.shutdown()
+            self.server.socket.close()
 
 class AduinoEventHandler(BaseHTTPRequestHandler):
     def do_POST(self):
