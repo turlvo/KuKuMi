@@ -167,5 +167,5 @@ class Reporter(threading.Thread):
         logging.info("report_value >> %s\n\n" % (data))
         try:
             requests.post(url, headers=header, data=json.dumps(data))
-        except requests.exceptions.ConnectionErrori as error:
+        except requests.exceptions.ConnectionError as error:
             print('Error in report_value %s' % str(error))
