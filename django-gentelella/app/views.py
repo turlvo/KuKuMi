@@ -143,7 +143,6 @@ def xiaomibt_setting_create(request):
             xiaomi_setting = XiaomiBTSetting.objects.all().first()
             print(xiaomi_setting)
             send_option_to_daemon(xiaomi_setting.ip, xiaomi_setting.iface, xiaomi_setting.threshold)
-            send_start_to_daemon()
 
             data = {
                 'result': 'OK',

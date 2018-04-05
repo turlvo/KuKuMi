@@ -49,7 +49,9 @@
                     </div>
                     <div class="x_content">
                         <button type="button" class="btn btn-info registerButton" id="registerDataButton">SAVE</button>
-                        <button type="button" class="btn btn-info startServerButton" id="startServerButton">Start Xiaomi BT Daemon</button>
+                        {% if setting %}
+                            <button type="button" class="btn btn-info startServerButton" id="startServerButton">Start Xiaomi BT Daemon</button>
+                        {% endif %}
                     </div>
                 </div>
             </div>

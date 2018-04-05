@@ -53,15 +53,15 @@ class Reporter(threading.Thread):
         self.data_queue.put_nowait(data)
 
     def run(self):
-        if (os.path.isfile(CONST_CONFIG_HUB_ADDRESS_FILE)):
-            self.hub_address = open(CONST_CONFIG_HUB_ADDRESS_FILE, 'r').readline()
-            print("read hub address : %s" % (self.hub_address))
-
-        if (os.path.isfile(CONST_CONFIG_THRESHOLD_FILE)):
-            self.threshold = float(open(CONST_CONFIG_THRESHOLD_FILE, 'r').readline())
-            print("read threshold: %s" % (self.threshold))
-
         while self.data_queue_runnable:
+            if (os.path.isfile(CONST_CONFIG_HUB_ADDRESS_FILE)):
+                self.hub_address = open(CONST_CONFIG_HUB_ADDRESS_FILE, 'r').readline()
+                logging.debug ("read hub address : %s" % (self.hub_address))
+
+            if (os.path.isfile(CONST_CONFIG_THRESHOLD_FILE)):
+                self.threshold = float(open(CONST_CONFIG_THRESHOLD_FILE, 'r').readline())
+                logging.debug ("read threshold: %s" % (self.threshold))
+
             data = self.data_queue.get()
             # print ("Reporter>> data : %s" % (data))
             self.parse_data(data)
@@ -103,7 +103,7 @@ class Reporter(threading.Thread):
                     dic_adv_data = {}
                     before = 0.0
                     current = 0.0
-                    if int(st_adv_data[5]) == CONST_TEMPERATURE_EVENT:
+                    if int(st_adv_data[10]) == CONST_TEMPERATURE_EVENT:
                         dic_adv_data = dict(zip(CONST_ADV_TEMPERATURE_FIELD, st_adv_data))
                         dic_adv_data['MAC'] = "%02x:%02x:%02x:%02x:%02x:%02x" % (st_adv_data[4:10][::-1])
                         before = Global.before_temperature.get(dic_adv_data['MAC'], 0.0)
@@ -116,7 +116,7 @@ class Reporter(threading.Thread):
                         else:
                             logging.info("\n\n")
                         Global.before_temperature[dic_adv_data['MAC']] = current
-                    elif int(st_adv_data[5]) == CONST_HUMIDITY_EVENT:
+                    elif int(st_adv_data[10]) == CONST_HUMIDITY_EVENT:
                         dic_adv_data = dict(zip(CONST_ADV_HUMIDITY_FIELD, st_adv_data))
                         dic_adv_data['MAC'] = "%02x:%02x:%02x:%02x:%02x:%02x" % (st_adv_data[4:10][::-1])
                         before = Global.before_humidity.get(dic_adv_data['MAC'], 0.0)
@@ -125,7 +125,7 @@ class Reporter(threading.Thread):
                             "Device: %s >> Before>> Humi: %.1f / After>> Humi: %.1f" % (dic_adv_data['MAC'], before, current))
                         logging.info("Diff>> Humi: %.1f" % (abs(current - before)))
                         if abs(current - before) >= self.threshold:
-                            self.report_value(CONST_HUMIDITY_EVENT, dic_adv_data['MAC'])
+                            self.report_value(CONST_HUMIDITY_EVENT, dic_adv_data)
                         else:
                             logging.info("\n\n")
                         Global.before_humidity[dic_adv_data['MAC']] = current

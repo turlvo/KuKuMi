@@ -3,11 +3,11 @@
    Ported to Arduino ESP32 by Evandro Copercini
  */
 
-#define WIFI_SSID "WIFI SSID"
-#define WIFI_PASSWORD "WIFI PASSWORD"
-//#define POST_URL "KuKu Mi's Xiaomi BT daemon server IP" // ex) http://192.168.1.137:39501
-#define POST_URL "192.168.1.137"  // For TCP Socket
-#define POST_PORT 39501           // For TCP Socket
+#define WIFI_SSID "KuKu 2.4GHz"
+#define WIFI_PASSWORD "qwerasdfzxcv0"
+//#define POST_URL "http://192.168.1.137:39502"
+#define POST_URL "192.168.1.137"  // For TCP Socket 
+#define POST_PORT 39501           // For TCP Socket 
 #define SCAN_TIME  60 // seconds
 #define SLEEP_TIME  0 // seconds
 
@@ -26,9 +26,19 @@
 
 #include "soc/soc.h"
 #include "soc/rtc_cntl_reg.h"
+#include "esp_system.h"
 
 WiFiMulti wifiMulti;
 BLEScan *pBLEScan;
+
+const int loopTimeCtl = 0;
+hw_timer_t *timer = NULL;
+
+
+void IRAM_ATTR resetModule(){
+    ets_printf("reboot\n");
+    esp_restart_noos();
+}
 
 class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks {
     void onResult(BLEAdvertisedDevice advertisedDevice)
@@ -46,6 +56,12 @@ class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks {
                 sprintf(&charServiceData[i*2], "%02x", cServiceData[i]);
             }
 
+            std::stringstream ss;
+            ss << "fe95" << charServiceData;
+            
+            Serial.print("Payload:");
+            Serial.println(ss.str().c_str());
+            
             switch (cServiceData[11]) {
                 case 0x04:
                     Serial.printf("TEMPERATURE_EVENT: %02X %02X\n", cServiceData[15], cServiceData[14]);
@@ -61,15 +77,24 @@ class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks {
                     break;
             }
 
-            std::stringstream ss;
-            ss << "fe95" << charServiceData;
-
+            
             //  For TCP Socket
-            WiFiClient client;
 
-            if (client.connect(POST_URL, POST_PORT)) {
-                client.print(ss.str().c_str());
-                Serial.println("Send success");
+            int send_retry = 5;
+            WiFiClient client;
+            while (--send_retry >= 0) {
+                if (client.connect(POST_URL, POST_PORT)) {
+                    client.print(ss.str().c_str());
+                    Serial.println("Send success");
+                    break;
+                }
+
+                if (send_retry == 0) {
+                    resetModule();
+                }
+
+                Serial.println("Retry to send data...");
+                delay(5000);
             }
 
 /*
@@ -123,10 +148,13 @@ void WiFiEvent(WiFiEvent_t event)
         break;
     case SYSTEM_EVENT_STA_DISCONNECTED:
         Serial.println("WiFi lost connection");
-        wifiMulti.addAP(WIFI_SSID, WIFI_PASSWORD);
+        resetModule();
         break;
     }
 }
+
+
+
 void setup()
 {
     WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0); //disable brownout detector
@@ -134,36 +162,60 @@ void setup()
     Serial.begin(115200);
     Serial.println("ESP32 BLE Scanner");
 
-    WiFi.onEvent(WiFiEvent);
-    wifiMulti.addAP(WIFI_SSID, WIFI_PASSWORD);
-
+    // BLE init and setting
     BLEDevice::init("");
     pBLEScan = BLEDevice::getScan(); //create new scan
     pBLEScan->setAdvertisedDeviceCallbacks(new MyAdvertisedDeviceCallbacks());
     pBLEScan->setActiveScan(true); //active scan uses more power, but get results faster
     pBLEScan->setInterval(0x50);
     pBLEScan->setWindow(0x30);
+    
+    // WiFi Setting and Connecting
+    WiFi.onEvent(WiFiEvent);
+    wifiMulti.addAP(WIFI_SSID, WIFI_PASSWORD);
+
+    Serial.println();
+    Serial.println();
+    Serial.print("Wait for WiFi... ");
+
+    int wifi_retry = 10;
+    while (--wifi_retry >= 0) {
+        if (wifiMulti.run() == WL_CONNECTED) {
+            break;
+        }
+
+        if (wifi_retry == 0) {
+            resetModule();
+        } 
+
+        Serial.print(".");
+        delay(3000);
+    }
+
+
+    // 30 minutes device reset scheduler
+    timer = timerBegin(0, 80, true); //timer 0, div 80
+    timerAttachInterrupt(timer, &resetModule, true);
+    timerAlarmWrite(timer, 1800000000, false); //set time in us
+    timerAlarmEnable(timer); //enable interrupt
+
+
 }
 
 void loop() {
-    // wait for WiFi connection
-    if ((wifiMulti.run() == WL_CONNECTED)) {
-        Serial.println("WiFi Connected");
 
-
-        Serial.printf("Start BLE scan for %d seconds...\n", SCAN_TIME);
-        BLEScanResults foundDevices = pBLEScan->start(SCAN_TIME);
-        //int count = foundDevices.getCount();
+    Serial.printf("Start BLE scan for %d seconds...\n", SCAN_TIME);
+    BLEScanResults foundDevices = pBLEScan->start(SCAN_TIME);
+    int count = foundDevices.getCount();
+    printf("Found device cound : %d\n", count);
 
 
 #if SLEEP_TIME > 0
-        esp_sleep_enable_timer_wakeup(SLEEP_TIME * 1000000); // translate second to micro second
-        Serial.printf("Enter deep sleep for %d seconds...\n", (SLEEP_TIME));
-        esp_deep_sleep_start();
+    esp_sleep_enable_timer_wakeup(SLEEP_TIME * 1000000); // translate second to micro second
+    Serial.printf("Enter deep sleep for %d seconds...\n", (SLEEP_TIME));
+    esp_deep_sleep_start();
 
 #endif
 
-    }
-    // wait WiFi connected
     delay(1000);
 }

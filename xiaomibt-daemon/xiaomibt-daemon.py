@@ -5,6 +5,7 @@ import sys, time
 import queue as Queue
 from daemon import Daemon
 import os.path
+import logging
 
 from reporter import Reporter
 from server import Server
@@ -14,6 +15,11 @@ CONST_CONFIG_SCAN_RESULT_FILE = '/tmp/xiaomibt-daemon.scanresult'
 CONST_CONFIG_PID_FILE = '/tmp/xiaomibt-daemon.pid'
 CONST_CONFIG_HUB_ADDRESS_FILE = '/tmp/xiaomibt-daemon.hubaddr'
 CONST_CONFIG_THRESHOLD_FILE = '/tmp/xiaomibt-daemon.threshold'
+
+logging.basicConfig(
+            format='%(asctime)s %(levelname)-8s %(message)s',
+            level=logging.INFO,
+            datefmt='%Y-%m-%d %H:%M:%S')
 
 class Global(object):
     scan_results = []
@@ -37,30 +43,31 @@ class XiaomiBTDaemon(Daemon):
 
 
     def run(self):
-        print ("XiaomiBTDaemon started~~~")
+        logging.info ("XiaomiBTDaemon started~~~")
         self.data_reporter.start()
         self.bridge_server.start()
 
-        if (os.path.isfile(CONST_CONFIG_IFACE_FILE)):
-            self.iface = int(open(CONST_CONFIG_IFACE_FILE, 'r').readline())
-            print("read iface : %s" % (self.iface))
 
         while True:
             if (os.path.isfile(CONST_CONFIG_PID_FILE) == False):
                 self.data_reporter.stop()
                 self.bridge_server.stop()
-                print("release server, reporter")
+                logging.info ("release server, reporter")
+
+            if (os.path.isfile(CONST_CONFIG_IFACE_FILE)):
+                self.iface = int(open(CONST_CONFIG_IFACE_FILE, 'r').readline())
+                logging.debug ("read iface : %s" % (self.iface))
 
             try:
                 self.scanner = Scanner(1).withDelegate(ScanDelegate(self.data_reporter))
                 self.found_devices = self.scanner.scan(10.0)
             except BTLEException as error:
-                print ('Error in main %s' % str(error))
+                logging.info ('Error in main %s' % str(error))
 
             time.sleep(2)
 
     def stop(self, *args, **kwargs):
-        print ("XiaomiBTDaemon stopped!!!")
+        logging.info ("XiaomiBTDaemon stopped!!!")
         Daemon.stop(self, *args, **kwargs)
 
     def getScanResult(self):
@@ -77,22 +84,22 @@ class XiaomiBTDaemon(Daemon):
             print("OFF"); 
 
     def setHubAddress(self, address):
-        print ("setHubAddress : %s" % (address))
+        logging.info ("setHubAddress : %s" % (address))
         with open(CONST_CONFIG_HUB_ADDRESS_FILE, 'w') as f:
             f.write(address)
 
     def setIface(self, iface):
-        print ("setIface : %s" % (iface))
+        logging.info ("setIface : %s" % (iface))
         with open(CONST_CONFIG_IFACE_FILE, 'w') as f:
             f.write(iface)
 
     def setThreshold(self, threshold):
-        print ("setThreshold : %s" % (threshold))
+        logging.info ("setThreshold : %s" % (threshold))
         with open(CONST_CONFIG_THRESHOLD_FILE, 'w') as f:
             f.write(threshold)
 
     def setAll(self, iface, address, threshold): 
-        print ("setAll")
+        logging.info ("setAll")
         self.setIface(iface)
         self.setHubAddress(address)
         self.setThreshold(threshold)
@@ -107,6 +114,7 @@ class ScanDelegate(DefaultDelegate):
         if isNewData:
             adv_data = dev.getValueText(0x16)
             if (None != adv_data and -1 != adv_data.find('95fe')):
+                logging.info ("Received from BT interface: {0}".format(adv_data))
                 self.data_reporter.putData(adv_data)
 
 

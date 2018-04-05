@@ -2,7 +2,12 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 import threading
 import socketserver
 import sys
+import logging
 
+logging.basicConfig(
+            format='%(asctime)s %(levelname)-8s %(message)s',
+            level=logging.INFO,
+            datefmt='%Y-%m-%d %H:%M:%S')
 
 class Global(object):
     data_reporter = None
@@ -20,8 +25,10 @@ class Server(threading.Thread):
         #self.sever.serve_forever()
 
         print("Started TCP Server on port 39501...")
-        self.server = socketserver.TCPServer(('', self.port), MyTCPHandler)
+        self.server = socketserver.TCPServer(('', self.port), MyTCPHandler, bind_and_activate=False)
         self.server.allow_reuse_address = True
+        self.server.server_bind()
+        self.server.server_activate()
         self.server.serve_forever()
 
     def stop(self):
@@ -35,17 +42,17 @@ class AduinoEventHandler(BaseHTTPRequestHandler):
     def do_POST(self):
         content_length = int(self.headers['Content-Length'])
         data = self.rfile.read(content_length).decode('utf-8')
-        print("AduinoEventHandler>>", data)
+        logging.info ("AduinoEventHandler>>", data)
         Global.data_reporter.putData(data)
         self.send_response(200)
         self.end_headers()
 
 class MyTCPHandler(socketserver.BaseRequestHandler):
     def handle(self):
-        print("Client connected: {0}".format(self.client_address[0]))
+        logging.info ("Client connected: {0}".format(self.client_address[0]))
         sock = self.request
         rbuff = sock.recv(1024)
         received = str(rbuff, encoding='utf-8')
-        print("Received : {0}".format(received))
+        logging.info ("Received from bridge aduino: {0}".format(received))
         Global.data_reporter.putData(received)
         sock.close()
