@@ -49,22 +49,26 @@ class XiaomiBTDaemon(Daemon):
 
 
         while True:
-            if (os.path.isfile(CONST_CONFIG_PID_FILE) == False):
+            if os.path.isfile(CONST_CONFIG_PID_FILE) == False:
                 self.data_reporter.stop()
                 self.bridge_server.stop()
                 logging.info ("release server, reporter")
+                sys.exit(0)
 
-            if (os.path.isfile(CONST_CONFIG_IFACE_FILE)):
+            if os.path.isfile(CONST_CONFIG_IFACE_FILE):
                 self.iface = int(open(CONST_CONFIG_IFACE_FILE, 'r').readline())
                 logging.debug ("read iface : %s" % (self.iface))
 
-            try:
-                self.scanner = Scanner(1).withDelegate(ScanDelegate(self.data_reporter))
-                self.found_devices = self.scanner.scan(10.0)
-            except BTLEException as error:
-                logging.info ('Error in main %s' % str(error))
+                if self.iface != -1:
+                    try:
+                        self.scanner = Scanner(self.iface).withDelegate(ScanDelegate(self.data_reporter))
+                        self.found_devices = self.scanner.scan(10.0)
+                    except BTLEException as error:
+                        logging.info ('Error in main %s' % str(error))
 
-            time.sleep(2)
+                    time.sleep(2)
+                else:
+                    time.sleep(10)
 
     def stop(self, *args, **kwargs):
         logging.info ("XiaomiBTDaemon stopped!!!")

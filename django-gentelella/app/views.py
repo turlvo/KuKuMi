@@ -247,6 +247,7 @@ def xiaomibt_interface(request):
 
     p = re.compile('hci\d')
     founds = p.findall(result)
+    founds.append("None")
     logger.error("interface>> result2: %s" % (founds))
 
     data = {}

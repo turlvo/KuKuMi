@@ -168,13 +168,13 @@
                     if (data.result) {
                         for (var i = 0; i < data.message.length; i++) {
                             {% if setting.iface %}
-                                if (i == {{ setting.iface }}) {
-                                    $('#bt_iface').append("<option value='" + i + "'selected=\"selected\">" + data.message[i] + "</option>");
+                                if ((i-1) == {{ setting.iface }}) {
+                                    $('#bt_iface').append("<option value='" + (i-1) + "'selected=\"selected\">" + data.message[i] + "</option>");
                                 } else {
-                                    $('#bt_iface').append("<option value='" + i + "'>" + data.message[i] + "</option>");
+                                    $('#bt_iface').append("<option value='" + (i-1) + "'>" + data.message[i] + "</option>");
                                 }
                             {% else %}
-                                $('#bt_iface').append("<option value='" + i + "'>" + data.message[i] + "</option>");
+                                $('#bt_iface').append("<option value='" + (i-1) + "'>" + data.message[i] + "</option>");
                             {% endif %}
 
                         }
