@@ -3,8 +3,8 @@
    Ported to Arduino ESP32 by Evandro Copercini
  */
 
-#define WIFI_SSID "KuKu 2.4GHz"
-#define WIFI_PASSWORD "qwerasdfzxcv0"
+#define WIFI_SSID "WIFI SSID"
+#define WIFI_PASSWORD "WIFI PASSWORD"
 //#define POST_URL "http://192.168.1.137:39502"
 #define POST_URL "192.168.1.137"  // For TCP Socket 
 #define POST_PORT 39501           // For TCP Socket 
