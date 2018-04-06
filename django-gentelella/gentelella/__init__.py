@@ -13,5 +13,5 @@ def signal_handler(signal, frame):
 
 startup()
 signal.signal(signal.SIGINT, signal_handler)
-signal.pause()
+
 
