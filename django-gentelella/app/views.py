@@ -603,8 +603,7 @@ def miremote_send_cmd(request, dev, cmd):
 
         result = 0
         try:
-            pass
-            # result = Miio_api.send_command(target_ip, target_token, command_code, 38400)
+            result = Miio_api.send_command(target_ip, target_token, command_code, 38400)
         except:
             result = -1
 

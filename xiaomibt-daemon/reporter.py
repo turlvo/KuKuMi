@@ -71,7 +71,9 @@ class Reporter(threading.Thread):
 
     def parse_data(self, adv_data):
         try:
-            if None != self.hub_address:
+            if None == self.hub_address:
+                logging.info("The Hub address is not stored! So, skip reporting...")
+            else:
                 # print ("\n\nReceived new data from, %s" % (adv_data))
                 len_data = len(adv_data)
                 if len_data == 40:

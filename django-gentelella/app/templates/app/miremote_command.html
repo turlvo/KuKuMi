@@ -148,9 +148,12 @@
             $.ajax({
                 url: "/miremote/command/delete/" + index,
                 type: 'DELETE',
+                beforeSend: function (xhr) {
+                    xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+                },
                 success: function (result) {
                     $this.button('reset');
-                    alert(result);
+                    alert(result.message);
                     location.reload();
                 },
                 error: function (result) {
