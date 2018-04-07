@@ -169,41 +169,52 @@ def virtualOff() {
 
 def cmd1() {
     log.debug "child cmd1() : ${device.currentState("cmd1")?.value}"
-    parent.command(this, device.currentState("cmd1")?.value)
+    parent.command(this, "cmd1")
 }
 def cmd2() {
     log.debug "child cmd2() : ${device.currentState("cmd2")?.value}"
-    parent.command(this, device.currentState("cmd2")?.value)
+    parent.command(this, "cmd2")
 }
 def cmd3() {
     log.debug "child cmd3() : ${device.currentState("cmd3")?.value}"
-    parent.command(this, device.currentState("cmd3")?.value)
+    parent.command(this, "cmd3")
 }
 def cmd4() {
     log.debug "child cmd4() : ${device.currentState("cmd4")?.value}"
-    parent.command(this, device.currentState("cmd4")?.value)
+    parent.command(this, "cmd4")
 }
 def cmd5() {
     log.debug "child cmd5() : ${device.currentState("cmd5")?.value}"
-    parent.command(this, device.currentState("cmd5")?.value)
+    parent.command(this, "cmd5")
 }
 def cmd6() {
     log.debug "child cmd6() : ${device.currentState("cmd6")?.value}"
-    parent.command(this, device.currentState("cmd6")?.value)
+    parent.command(this, "cmd6")
 }
 def cmd7() {
     log.debug "child cmd7() : ${device.currentState("cmd7")?.value}"
-    parent.command(this, device.currentState("cmd7")?.value)
+    parent.command(this, "cmd7")
 }
 def cmd8() {
     log.debug "child cmd8() : ${device.currentState("cmd8")?.value}"
-    parent.command(this, device.currentState("cmd8")?.value)
+    parent.command(this, "cmd8")
 }
 def cmd9() {
     log.debug "child cmd9() : ${device.currentState("cmd9")?.value}"
-    parent.command(this, device.currentState("cmd9")?.value)
+    parent.command(this, "cmd9")
 }
-
+def cmd10() {
+    log.debug "child cmd10() : ${device.currentState("cmd10")?.value}"
+    parent.command(this, "cmd10")
+}
+def cmd11() {
+    log.debug "child cmd11() : ${device.currentState("cmd11")?.value}"
+    parent.command(this, "cmd11")
+}
+def cmd12() {
+    log.debug "child cmd12() : ${device.currentState("cmd12")?.value}"
+    parent.command(this, "cmd12")
+}
 def sendCommandByName(cmd) {
     log.debug "child sendCommandByName() : ${cmd}"
 	parent.command(this, cmd)

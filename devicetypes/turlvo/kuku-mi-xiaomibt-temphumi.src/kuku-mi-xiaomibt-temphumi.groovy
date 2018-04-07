@@ -198,112 +198,6 @@ private String parseValue(String description) {
     }
 	null
 }
-private Map parseCatchAllMessage(String description) {
-	Map resultMap = [:]
-	def cluster = zigbee.parse(description)
-	log.debug cluster
-	if (shouldProcessMessage(cluster)) {
-		switch(cluster.clusterId) {
-			case 0x0000:
-			resultMap = getBatteryResult(cluster.data.last())
-			break
-
-			case 0xFC02:
-			log.debug 'ACCELERATION'
-			break
-
-			case 0x0402:
-			log.debug 'TEMP'
-				// temp is last 2 data values. reverse to swap endian
-				String temp = cluster.data[-2..-1].reverse().collect { cluster.hex1(it) }.join()
-				def value = getTemperature(temp)
-				resultMap = getTemperatureResult(value)
-				break
-		}
-	}
-
-	return resultMap
-}
-private Map parseReportAttributeMessage(String description) {
-	Map descMap = (description - "read attr - ").split(",").inject([:]) { map, param ->
-		def nameAndValue = param.split(":")
-		map += [(nameAndValue[0].trim()):nameAndValue[1].trim()]
-	}
-	log.debug "Desc Map: $descMap"
-   
-	if (descMap.cluster == "0001" && descMap.attrId == "0020") {
-    //log.debug "parseReportAttributeMessage ${descMap.raw[-2:-1]}"
-		return getBatteryResult(Integer.parseInt(descMap.value, 16))        
-	}
-
-}
-
-private String getBatteryResult(rawValue) {
-	log.debug 'Battery'
-	def linkText = getLinkText(device)
-	log.debug rawValue
-
-	def result =  '--'
-    def maxBatt = 100
-    def battLevel = Math.round(rawValue * 100 / 255)
-	
-	if (battLevel > maxBatt) {
-				battLevel = maxBatt
-    }
-
-	return battLevel
-}
-
-def refresh() {
-	log.debug "refresh called"
-	def refreshCmds = [
-		"st rattr 0x${device.deviceNetworkId} 1 1 0x00", "delay 2000",
-		"st rattr 0x${device.deviceNetworkId} 1 1 0x20", "delay 2000"
-	]
-
-	return refreshCmds + enrollResponse()
-}
-
-def configure() {
-	// Device-Watch allows 2 check-in misses from device + ping (plus 1 min lag time)
-	// enrolls with default periodic reporting until newer 5 min interval is confirmed
-	sendEvent(name: "checkInterval", value: 300, displayed: false, data: [protocol: "zigbee", hubHardwareId: device.hub.hardwareID])
-
-	// temperature minReportTime 30 seconds, maxReportTime 5 min. Reporting interval if no activity
-	// battery minReport 30 seconds, maxReportTime 6 hrs by default
-	return refresh() + zigbee.batteryConfig() + zigbee.temperatureConfig(300, 900) // send refresh cmds as part of config
-}
-
-def enrollResponse() {
-	log.debug "Sending enroll response"
-	String zigbeeEui = swapEndianHex(device.hub.zigbeeEui)
-	[
-		//Resending the CIE in case the enroll request is sent before CIE is written
-		"zcl global write 0x500 0x10 0xf0 {${zigbeeEui}}", "delay 200",
-		"send 0x${device.deviceNetworkId} 1 ${endpointId}", "delay 2000",
-		//Enroll Response
-		"raw 0x500 {01 23 00 00 00}", "delay 200",
-		"send 0x${device.deviceNetworkId} 1 1", "delay 2000"
-	]
-}
-
-private String swapEndianHex(String hex) {
-	reverseArray(hex.decodeHex()).encodeHex()
-}
-
-private byte[] reverseArray(byte[] array) {
-	int i = 0;
-	int j = array.length - 1;
-	byte tmp;
-	while (j > i) {
-		tmp = array[j];
-		array[j] = array[i];
-		array[i] = tmp;
-		j--;
-		i++;
-	}
-	return array
-}
 
 
 def generateEvent(Map results) {
@@ -333,5 +227,7 @@ def generateEvent(Map results) {
         sendEvent(name: name, value: value, unit: unit)
         
     }
+    def now = new Date().format("yyyy MMM dd EEE h:mm:ss a", location.timeZone)
+    sendEvent(name: "lastCheckin", value: now, displayed: false)
     return null
 }
