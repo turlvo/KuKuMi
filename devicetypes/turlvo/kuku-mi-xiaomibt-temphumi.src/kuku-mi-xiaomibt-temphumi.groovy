@@ -44,7 +44,7 @@ metadata {
 	tiles(scale: 2) {
         multiAttributeTile(name: "temp&humidity", type: "generic", width: 6, height: 4) {
             tileAttribute("temp&humidity", key: "PRIMARY_CONTROL") {
-                attributeState "temp&humidity", label: '${currentValue}',
+                attributeState "temp&humidity", label: '${currentValue}', icon: "https://cdn.rawgit.com/turlvo/KuKuMi/master/images/icon/KuKuMi_Temp_Humi_icon.png",
                     backgroundColors:[
                         [value: 0, color: "#153591"],
                         [value: 5, color: "#1e9cbb"],
@@ -79,7 +79,7 @@ metadata {
         }
 
         valueTile("temp&humidity2", "temp&humidity", decoration: "flat", inactiveLabel: false) {
-            state "default", label:'${currentValue}', icon: "st.Weather.weather2",
+            state "default", label:'${currentValue}', icon: "https://cdn.rawgit.com/turlvo/KuKuMi/master/images/icon/KuKuMi_Temp_Humi_icon.png",
                 backgroundColors:[
                     [value: 0, color: "#153591"],
                     [value: 5, color: "#1e9cbb"],
