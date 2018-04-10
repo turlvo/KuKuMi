@@ -193,21 +193,16 @@ def xiaomibt_setting_del(request, id):
         return JsonResponse(data)
 
 
-def validate_device_value(request):
-    name = request.GET.get('name', None)
+def validate_input_value(request):
+    name = request.GET.get('data', None)
 
     data = {
         'is_taken': False
     }
-    if XiaomiBTDevice.objects.filter(name__iexact=name).exists():
+    if ' ' in name:
         data = {
             'is_taken': True,
-            'error_message': 'A command with this command already exists.'
-        }
-    elif ' ' in name:
-        data = {
-            'is_taken': True,
-            'error_message': 'A space is not permitted in command name.'
+            'error_message': 'A space is not permitted in input.'
         }
 
     return JsonResponse(data)

@@ -153,6 +153,22 @@
 
         });
 
+        $("#name").change(function () {
+            $.ajax({
+                url: '/ajax/validate_input_value',
+                data: {'data':$("#name").val()},
+                dataType: 'json',
+                success: function (data) {
+                    if (data.is_taken) {
+                        $("#registerDataButton").hide();
+                        alert(data.error_message);
+                    } else {
+                        $("#registerDataButton").show();
+                    }
+                }
+            });
+        });
+
 
         $(document).on("click", ".deleteButton", function () {
             showLoading();
