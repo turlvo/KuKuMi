@@ -69,6 +69,8 @@ class XiaomiBTDaemon(Daemon):
                     time.sleep(2)
                 else:
                     time.sleep(10)
+            else:
+                time.sleep(10)
 
     def stop(self, *args, **kwargs):
         logging.info ("XiaomiBTDaemon stopped!!!")

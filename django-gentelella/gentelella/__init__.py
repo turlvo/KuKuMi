@@ -1,6 +1,9 @@
 import subprocess
 import signal
 import sys
+import os.path
+
+CONST_CONFIG_IFACE_FILE = '/tmp/xiaomibt-daemon.iface'
 
 def startup():
     print ("Startup...")
@@ -11,7 +14,8 @@ def signal_handler(signal, frame):
         p = subprocess.Popen(["python", "../xiaomibt-daemon/xiaomibt-daemon.py", "stop"])
         sys.exit(0)
 
-startup()
+if os.path.isfile(CONST_CONFIG_IFACE_FILE):
+    startup()
 signal.signal(signal.SIGINT, signal_handler)
 
 
