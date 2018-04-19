@@ -73,6 +73,7 @@ def xiaomibt_setting(request):
     return render(request, 'app/xiaomibt_setting.html', {'setting': xiaomi_setting, 'daemon_state': daemon_state})
 
 
+@csrf_exempt
 def xiaomibt_dev_create(request):
     if request.method == 'POST':
         form = XiaomiBTDeviceForm(request.POST)
@@ -92,6 +93,7 @@ def xiaomibt_dev_create(request):
         return JsonResponse(data)
 
 
+@csrf_exempt
 def xiaomibt_dev_edit(request, id):
     if request.method == 'POST':
         fb = XiaomiBTDevice.objects.get(id=id)
@@ -111,6 +113,7 @@ def xiaomibt_dev_edit(request, id):
         return JsonResponse(data)
 
 
+@csrf_exempt
 def xiaomibt_dev_del(request, id):
     if request.method == 'DELETE':
         fb = XiaomiBTDevice.objects.get(id=id)
@@ -129,6 +132,7 @@ def xiaomibt_dev_del(request, id):
         return JsonResponse(data)
 
 
+@csrf_exempt
 def xiaomibt_setting_create(request):
     logger.error(
         "xiaomibt_setting_create %s, %s, %s" % (request.POST['ip'], request.POST['iface'], request.POST['threshold']))
@@ -156,6 +160,7 @@ def xiaomibt_setting_create(request):
         return JsonResponse(data)
 
 
+@csrf_exempt
 def xiaomibt_setting_edit(request, id):
     if request.method == 'POST':
         fb = XiaomiBTSetting.objects.get(id=id)
@@ -175,6 +180,7 @@ def xiaomibt_setting_edit(request, id):
         return JsonResponse(data)
 
 
+@csrf_exempt
 def xiaomibt_setting_del(request, id):
     if request.method == 'DELETE':
         fb = XiaomiBTSetting.objects.get(id=id)
@@ -366,6 +372,7 @@ def miremote_command(request):
     return render(request, 'app/miremote_command.html', {'devices': devices, 'commands': commands})
 
 
+@csrf_exempt
 def miremote_dev_create(request):
     if request.method == 'POST':
         form = MiRemoteDeviceForm(request.POST)
@@ -385,6 +392,7 @@ def miremote_dev_create(request):
         return JsonResponse(data)
 
 
+@csrf_exempt
 def miremote_dev_edit(request, id):
     if request.method == 'POST':
         fb = MiRemoteDevice.objects.get(id=id)
@@ -404,6 +412,7 @@ def miremote_dev_edit(request, id):
         return JsonResponse(data)
 
 
+@csrf_exempt
 def miremote_dev_del(request, id):
     if request.method == 'DELETE':
         fb = MiRemoteDevice.objects.get(id=id)
@@ -422,6 +431,7 @@ def miremote_dev_del(request, id):
         return JsonResponse(data)
 
 
+@csrf_exempt
 def miremote_command_create(request):
     logger.debug("xiaomibt_setting_create")
     if request.method == 'POST':
@@ -442,6 +452,7 @@ def miremote_command_create(request):
         return JsonResponse(data)
 
 
+@csrf_exempt
 def miremote_command_edit(request, id):
     if request.method == 'POST':
         fb = MiRemoteCommand.objects.get(id=id)
@@ -461,6 +472,7 @@ def miremote_command_edit(request, id):
         return JsonResponse(data)
 
 
+@csrf_exempt
 def miremote_command_del(request, id):
     if request.method == 'DELETE':
         fb = MiRemoteCommand.objects.get(id=id)
