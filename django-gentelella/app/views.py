@@ -246,8 +246,12 @@ def xiaomibt_interface(request):
         # result = -1
         result = 0
 
-    p = re.compile('hci\d')
-    founds = p.findall(result)
+    founds = []
+    try:
+        p = re.compile('hci\d')
+        founds = p.findall(result)
+    except:
+        logger.error("There is no bt iface")
     founds.append("None")
     logger.error("interface>> result2: %s" % (founds))
 
