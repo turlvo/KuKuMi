@@ -5,7 +5,14 @@
 It makes SmartThings supports Xiaomi products.
 
 * Mi Remote
+<img src='https://cdn.rawgit.com/turlvo/KuKuMi/master/images/screenshots/miremote.png' width=250>
+
 * Xiaomi BT Temperature / Humidity Sensor
+<img src='https://cdn.rawgit.com/turlvo/KuKuMi/master/images/screenshots/bt_sensor.png' width=250>
+
+
+
+# 'KuKu Mi' Architecutre
 <img src='https://cdn.rawgit.com/turlvo/KuKuMi/master/images/screenshots/Architecture.png' width=600>
 
 
