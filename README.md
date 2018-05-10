@@ -13,7 +13,7 @@ It makes SmartThings supports Xiaomi products.
 
 
 # 'KuKu Mi' Architecutre
-<img src='https://cdn.rawgit.com/turlvo/KuKuMi/master/images/screenshots/Architecture.png' width=600>
+<img src='https://cdn.rawgit.com/turlvo/KuKuMi/master/images/screenshots/Architecture2.png' width=600>
 
 
 # 0. Preparing
