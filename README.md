@@ -1,20 +1,31 @@
-# 'KuKu Mi' Install Guide
+# 'KuKu Mi' 
 
 'KuKu Mi' project consists of DTH and SmartApp and API server.
 
-It makes SmartThings to control Xiaomi product.
-(Currently supports Mi Remote only)
+It makes SmartThings supports Xiaomi products.
+
+* Mi Remote
+* Xiaomi BT Temperature / Humidity Sensor
 
 
 # 0. Preparing
 
 To use 'KuKu Mi', need below environments. 
-- Register 'Mi Remote' device at 'MiHome' application
-- 'Docker' system tool
+
+#### -  Common
+-  'Docker' system tool
 - NAS or Micro or Mini Server
+
+#### - Mi Remote
+- Registered 'Mi Remote' device at 'MiHome' application
+
+#### - Xiaomi BT Temperature / Humidity Sensor
+- BT dongle for Xiaomi BT Temperature / Humidity Sensor
+(if there is no WiFi/BT module in system)
+- Aduino(ESP32s) to exetend BT coverage
  
 
-# 1. Install 'KuKu Mi' Daemon
+# 1. Install 'KuKu Mi' Server
 
 1-1) 'KuKu Mi' Docker Image download
 
@@ -32,12 +43,12 @@ or
 
 ```
 [X86 Platform]
-# docker run --name=KuKuMi --net=host turlvo/kukumi
+# docker run --name=KuKuMi --privileged --net=host turlvo/kukumi
 
 or
 
-[ARM Platform]
-# docker run --name=KuKuMi --net=host turlvo/kukumi-rasp
+[ARM Platform] (Xiaomi BT version is not released)
+# docker run --name=KuKuMi  --privileged --net=host turlvo/kukumi-rasp
 ```
 
 1-3) Enable auto run 'KuKu Mi' container when rebooted (Optional)
@@ -67,7 +78,7 @@ WantedBy=multi-user.target
 
 
 # 2. Setting of 'Mi Remote' at 'KuKu Mi Web server'
-2-1) Connect to 'http://[KuKu Mi api Server's IP]:8484/miremote' using Web browser
+2-1) Connect to 'http://[KuKu Mi api Server's IP]:8484/' using Web browser
 
 <img src='https://cdn.rawgit.com/turlvo/KuKuMi/master/images/screenshots/webserver1.jpg' width=400>
 
@@ -165,7 +176,3 @@ configure 'State Monitor' menu
 4-3) Installed Device Screenshot(Custom DTH)
 
 <img src='https://cdn.rawgit.com/turlvo/KuKuMi/master/images/screenshots/install8.jpg' width=400>
-
-
-
-	
