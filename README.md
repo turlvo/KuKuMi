@@ -88,25 +88,25 @@ WantedBy=multi-user.target
 # 2. Setting of 'Mi Remote' at 'KuKu Mi Web server'
 2-1) Connect to 'http://[KuKu Mi api Server's IP]:8484/' using Web browser
 
-<img src='https://cdn.rawgit.com/turlvo/KuKuMi/master/images/screenshots/webserver1.jpg' width=400>
+<img src='https://cdn.rawgit.com/turlvo/KuKuMi/master/images/screenshots/webserver1.png' width=400>
 
 
 2-2) Add a 'Mi Remote' device (Discover or Manual)
 
-<img src='https://cdn.rawgit.com/turlvo/KuKuMi/master/images/screenshots/webserver2.jpg' width=400>
-<img src='https://cdn.rawgit.com/turlvo/KuKuMi/master/images/screenshots/webserver2-1.jpg' width=400>
+<img src='https://cdn.rawgit.com/turlvo/KuKuMi/master/images/screenshots/webserver2.png' width=400>
+<img src='https://cdn.rawgit.com/turlvo/KuKuMi/master/images/screenshots/webserver2-1.png' width=400>
 
 
 2-3) Add a commands by learning or add a commands by manually
 
-<img src='https://cdn.rawgit.com/turlvo/KuKuMi/master/images/screenshots/webserver3.jpg' width=400>
-<img src='https://cdn.rawgit.com/turlvo/KuKuMi/master/images/screenshots/webserver3-1.jpg' width=400>
-<img src='https://cdn.rawgit.com/turlvo/KuKuMi/master/images/screenshots/webserver3-2.jpg' width=400>
+<img src='https://cdn.rawgit.com/turlvo/KuKuMi/master/images/screenshots/webserver3.png' width=400>
+<img src='https://cdn.rawgit.com/turlvo/KuKuMi/master/images/screenshots/webserver3-1.png' width=400>
+<img src='https://cdn.rawgit.com/turlvo/KuKuMi/master/images/screenshots/webserver3-2.png' width=400>
 
 
 2-4) Added devices and commands screenshot
 
-<img src='https://cdn.rawgit.com/turlvo/KuKuMi/master/images/screenshots/webserver4-1.jpg' width=400>
+<img src='https://cdn.rawgit.com/turlvo/KuKuMi/master/images/screenshots/webserver4-1.png' width=400>
 
 
 # 3. Installation of 'KuKu Mi' DTH and SmartApp at ST IDE
