@@ -4,7 +4,7 @@ It extends converage between KuKuMi Server and  Xiaomi BT Temperature/Humidity S
 
 # Overview
 ## - Architecture
-<img src='https://cdn.rawgit.com/turlvo/KuKuMi/master/images/screenshots/Architecture1.png' width=800>
+> <img src='https://cdn.rawgit.com/turlvo/KuKuMi/master/images/screenshots/Architecture1.png' width=800>
 
 # Installation
 > 1) Arduino IDE Install
@@ -40,24 +40,24 @@ spiffs	data	spiffs	0x391000	0x6F000
 >> - Open Arduino IDE Application
 
 >> - Select 'Tool -> Board -> 'ESP32 Dev Module'
-<img src='https://cdn.rawgit.com/turlvo/KuKuMi/master/images/screenshots/install_arduino0.jpg' width=600>
+>> <img src='https://cdn.rawgit.com/turlvo/KuKuMi/master/images/screenshots/install_arduino0.jpg' width=600>
 
 >> - Copy source code 'arduino-ble-bridge.ino' to Arduino IDE
+[Link](https://github.com/turlvo/KuKuMi/blob/master/arduino-ble-bridge/arduino-ble-bridge.ino)
 
 >> - Change 'WIFI_SSID' to connect to your AP's SSID
 
 >> - Change 'WIFI_PASSWORD' to your AP's password
 
 >> - Change 'POST_URL' to your KuKu Mi server's IP
-
-<img src='https://cdn.rawgit.com/turlvo/KuKuMi/master/images/screenshots/install_arduino1.jpg' width=600>
+>> <img src='https://cdn.rawgit.com/turlvo/KuKuMi/master/images/screenshots/install_arduino1.jpg' width=600>
 
 >> - Compile and Upload
-<img src='https://cdn.rawgit.com/turlvo/KuKuMi/master/images/screenshots/install_arduino2.jpg' width=600>
+>> <img src='https://cdn.rawgit.com/turlvo/KuKuMi/master/images/screenshots/install_arduino2.jpg' width=600>
 
 
 ## - Packaging
 * ESP32s board
 * Container box
 * Sponge
-<img src='https://cdn.rawgit.com/turlvo/KuKuMi/master/images/screenshots/package.png' width=800>
+> <img src='https://cdn.rawgit.com/turlvo/KuKuMi/master/images/screenshots/package.png' width=800>
