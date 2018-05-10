@@ -6,6 +6,7 @@ It makes SmartThings supports Xiaomi products.
 
 * Mi Remote
 * Xiaomi BT Temperature / Humidity Sensor
+<img src='https://cdn.rawgit.com/turlvo/KuKuMi/master/images/screenshots/Architecture.png' width=600>
 
 
 # 0. Preparing
