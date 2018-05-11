@@ -31,7 +31,7 @@ To use 'KuKu Mi', need below environments.
 - BT dongle for Xiaomi BT Temperature / Humidity Sensor
 (if there is no WiFi/BT module in system)
 - Aduino(ESP32s) to exetend BT coverage
- [Arduino Installation](https://github.com/turlvo/KuKuMi/edit/master/documents/installation/arduino/README.md)
+ [Arduino Installation](https://github.com/turlvo/KuKuMi/blob/master/documents/installation/arduino/README.md)
 
 # 1. Install 'KuKu Mi' Server
 
