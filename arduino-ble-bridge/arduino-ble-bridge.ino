@@ -5,7 +5,6 @@
 
 #define WIFI_SSID "WIFI SSID"
 #define WIFI_PASSWORD "WIFI PASSWORD"
-//#define POST_URL "http://192.168.1.137:39502"
 #define POST_URL "192.168.1.137"  // For TCP Socket 
 #define POST_PORT 39501           // For TCP Socket 
 #define SCAN_TIME  60 // seconds
@@ -28,12 +27,29 @@
 #include "soc/rtc_cntl_reg.h"
 #include "esp_system.h"
 
+#include <SPI.h>
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+
+// OLED Setting
+//#define SUPPORT_LCD
+
+#ifdef SUPPORT_LCD
+#define OLED_RESET 4
+Adafruit_SSD1306 display(OLED_RESET);
+
+#if (SSD1306_LCDHEIGHT != 32)
+#error("Height incorrect, please fix Adafruit_SSD1306.h!");
+#endif
+#endif
+
+// WiFi & BT Instance
 WiFiMulti wifiMulti;
 BLEScan *pBLEScan;
 
 const int loopTimeCtl = 0;
 hw_timer_t *timer = NULL;
-
 
 void IRAM_ATTR resetModule(){
     ets_printf("reboot\n");
@@ -61,19 +77,53 @@ class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks {
             
             Serial.print("Payload:");
             Serial.println(ss.str().c_str());
-            
+
+            char eventLog[256];
+            unsigned long value, value2;
+            char charValue[5] = {0,};
             switch (cServiceData[11]) {
                 case 0x04:
-                    Serial.printf("TEMPERATURE_EVENT: %02X %02X\n", cServiceData[15], cServiceData[14]);
+                    sprintf(charValue, "%02X%02X", cServiceData[15], cServiceData[14]);
+                    value = strtol(charValue, 0, 16);
+                    Serial.printf("TEMPERATURE_EVENT: %s, %d\n", charValue, value);
+
+#ifdef SUPPORT_LCD
+                    sprintf(eventLog, "TEMPERATURE_EVENT:\n %.1f\n", (float)(value) / 10);                   
+                    drawLog(eventLog);
+#endif
                     break;
                 case 0x06:
-                    Serial.printf("HUMIDITY_EVENT: %02X %02X\n", cServiceData[15], cServiceData[14]);
+                    sprintf(charValue, "%02X%02X", cServiceData[15], cServiceData[14]);
+                    value = strtol(charValue, 0, 16);                    
+                    Serial.printf("HUMIDITY_EVENT: %s, %d\n", charValue, value);
+
+#ifdef SUPPORT_LCD
+                    sprintf(eventLog, "HUMIDITY_EVENT:\n %.1f\n", (float)(value) / 10);
+                    drawLog(eventLog);
+#endif
                     break;
                 case 0x0A:
-                    Serial.printf("BATTERY_EVENT: %02X\n", cServiceData[14]);
+                    sprintf(charValue, "%02X", cServiceData[14]);
+                    value = strtol(charValue, 0, 16);                    
+                    Serial.printf("BATTERY_EVENT: %s, %d\n", charValue, value);
+
+#ifdef SUPPORT_LCD
+                    sprintf(eventLog, "BATTERY_EVENT:\n %.1f\n", (float)(value) / 10);
+                    drawLog(eventLog);
+#endif
                     break;
                 case 0x0D:
-                    Serial.printf("TEMPERATURE_AND_HUMIDITY_EVENT: %02X %02X /  %02X %02X\n", cServiceData[15], cServiceData[14], cServiceData[17], cServiceData[16]);
+                    sprintf(charValue, "%02X%02X", cServiceData[15], cServiceData[14]);
+                    value = strtol(charValue, 0, 16);                    
+                    Serial.printf("TEMPERATURE_EVENT: %s, %d\n", charValue, value);                    
+                    sprintf(charValue, "%02X%02X", cServiceData[17], cServiceData[16]);
+                    value2 = strtol(charValue, 0, 16);                    
+                    Serial.printf("HUMIDITY_EVENT: %s, %d\n", charValue, value2);
+                 
+#ifdef SUPPORT_LCD
+                    sprintf(eventLog, "TEMPERATURE_AND_HUMIDITY_EVENT:\n %.1f / %.1f\n", (float)(value) / 10, (float)(value2) / 10);
+                    drawLog(eventLog);
+#endif
                     break;
             }
 
@@ -145,9 +195,18 @@ void WiFiEvent(WiFiEvent_t event)
         break;
     case SYSTEM_EVENT_STA_CONNECTED:
         Serial.println("STA_CONNECTED");
+        
+#ifdef SUPPORT_LCD
+        drawLog("WiFi connected!");
+#endif
         break;
     case SYSTEM_EVENT_STA_DISCONNECTED:
         Serial.println("WiFi lost connection");
+
+#ifdef SUPPORT_LCD
+        drawLog("WiFi lost connection");
+#endif
+        delay(1000);
         resetModule();
         break;
     }
@@ -160,8 +219,15 @@ void setup()
     WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0); //disable brownout detector
 
     Serial.begin(115200);
-    Serial.println("ESP32 BLE Scanner");
+    Serial.println("KuKu Mi Bridge");
 
+#ifdef SUPPORT_LCD
+    display.begin(SSD1306_SWITCHCAPVCC, 0x3C);  // initialize with the I2C addr 0x3C (for the 128x32)
+    // Clear the buffer.
+    display.clearDisplay();
+    display.setTextColor(WHITE);
+#endif
+ 
     // BLE init and setting
     BLEDevice::init("");
     pBLEScan = BLEDevice::getScan(); //create new scan
@@ -176,7 +242,9 @@ void setup()
 
     Serial.println();
     Serial.println();
-    Serial.print("Wait for WiFi... ");
+#ifdef SUPPORT_LCD
+    drawLog("WiFi connecting...");
+#endif
 
     int wifi_retry = 10;
     while (--wifi_retry >= 0) {
@@ -202,13 +270,36 @@ void setup()
 
 }
 
-void loop() {
+#ifdef SUPPORT_LCD
+void drawText(const char* text) {
+  for (uint8_t i=0; i < strlen(text); i++) {
+    display.write(text[i]);
+  }    
+}
 
+void drawLog(const char* msg) {
+  display.clearDisplay();
+  display.setCursor(0,0);
+  display.setTextSize(1);
+  drawText(msg);
+
+  display.display();
+  delay(1);
+}
+#endif
+
+void loop() {
+    char printLog[256];
     Serial.printf("Start BLE scan for %d seconds...\n", SCAN_TIME);
+
+#ifdef SUPPORT_LCD
+    sprintf(printLog, "Start BLE scan for %d seconds...\n", SCAN_TIME);
+    drawLog(printLog);
+#endif
+    
     BLEScanResults foundDevices = pBLEScan->start(SCAN_TIME);
     int count = foundDevices.getCount();
-    printf("Found device cound : %d\n", count);
-
+    printf("Found device count : %d\n", count);
 
 #if SLEEP_TIME > 0
     esp_sleep_enable_timer_wakeup(SLEEP_TIME * 1000000); // translate second to micro second
@@ -217,5 +308,5 @@ void loop() {
 
 #endif
 
-    delay(1000);
+    delay(2000);
 }
