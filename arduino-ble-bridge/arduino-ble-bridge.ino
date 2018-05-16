@@ -27,15 +27,14 @@
 #include "soc/rtc_cntl_reg.h"
 #include "esp_system.h"
 
+//#define SUPPORT_LCD
+#ifdef SUPPORT_LCD
 #include <SPI.h>
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
 // OLED Setting
-//#define SUPPORT_LCD
-
-#ifdef SUPPORT_LCD
 #define OLED_RESET 4
 Adafruit_SSD1306 display(OLED_RESET);
 
