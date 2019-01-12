@@ -4,7 +4,7 @@ cd /root/KuKuMi
 git checkout -f
 git pull
 
-pip install --upgrade requirements.txt
+pip install --upgrade -r requirements.txt
 
 echo ""
 cd /root/KuKuMi/xiaomibt-daemon
