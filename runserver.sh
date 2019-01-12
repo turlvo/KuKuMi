@@ -4,6 +4,8 @@ cd /root/KuKuMi
 git checkout -f
 git pull
 
+pip install --upgrade requirements.txt
+
 echo ""
 cd /root/KuKuMi/xiaomibt-daemon
 python xiaomibt-daemon.py stop
