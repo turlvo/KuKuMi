@@ -3,6 +3,7 @@ import threading
 import socketserver
 import sys
 import logging
+import paho.mqtt.client
 
 logging.basicConfig(
             format='%(asctime)s %(levelname)-8s %(message)s',
@@ -15,44 +16,32 @@ class Global(object):
 class Server(threading.Thread):
     def __init__(self, reporter, port):
         threading.Thread.__init__(self)
-        Global.data_reporter = reporter
+        self.data_reporter = reporter
         self.port = port
-        self.server = None
+
+        self.client = paho.mqtt.client.Client()
+        self.client.on_connect = self.on_connect
+        self.client.on_message = self.on_message
 
     def run(self):
-        #print("Started WebServer on port 39501...")
-        #self.sever = HTTPServer(('', self.port), AduinoEventHandler)
-        #self.sever.serve_forever()
-
-        print("Started TCP Server on port 39501...")
-        self.server = socketserver.TCPServer(('', self.port), MyTCPHandler, bind_and_activate=False)
-        self.server.allow_reuse_address = True
-        self.server.server_bind()
-        self.server.server_activate()
-        self.server.serve_forever()
+        logging.info("Started TCP Server on port %d..." % self.port)
+        self.client.connect(host='127.0.01', port=self.port, keepalive=60)
+        self.client.loop_forever()
 
     def stop(self):
-        #self.sever.server_close()
+        if None != self.client:
+            self.client.disconnect()
 
-        if None != self.server:
-            self.server.shutdown()
-            self.server.socket.close()
+    def on_connect(self, client, userdata, flags, rc):
+        logging.info('ESP connected (%s)' % client._client_id)
+        client.subscribe(topic='esp/kukumi')
 
-class AduinoEventHandler(BaseHTTPRequestHandler):
-    def do_POST(self):
-        content_length = int(self.headers['Content-Length'])
-        data = self.rfile.read(content_length).decode('utf-8')
-        logging.info ("AduinoEventHandler>>", data)
-        Global.data_reporter.putData(data)
-        self.send_response(200)
-        self.end_headers()
-
-class MyTCPHandler(socketserver.BaseRequestHandler):
-    def handle(self):
-        logging.info ("Client connected: {0}".format(self.client_address[0]))
-        sock = self.request
-        rbuff = sock.recv(1024)
-        received = str(rbuff, encoding='utf-8')
+    def on_message(self, client, userdata, message):
+        received = str(message.payload, encoding='utf-8')
         logging.info ("Received from bridge aduino: {0}".format(received))
-        Global.data_reporter.putData(received)
-        sock.close()
+        self.data_reporter.putData(received)
+
+
+if __name__ == '__main__':
+    server = Server(None, 1883)
+    server.run()

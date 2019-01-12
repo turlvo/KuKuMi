@@ -3,10 +3,10 @@
    Ported to Arduino ESP32 by Evandro Copercini
  */
 
-#define WIFI_SSID "WIFI SSID"
-#define WIFI_PASSWORD "WIFI PASSWORD"
-#define POST_URL "192.168.1.137"  // For TCP Socket 
-#define POST_PORT 39501           // For TCP Socket 
+#define WIFI_SSID ""       // "YOUR WIFI SSID"
+#define WIFI_PASSWORD ""   // "YOUR WiFI AP PASSWORD"
+#define MQTT_SERVER ""     // "YOUR_MQTT_BROKER_IP_ADDRESS"
+#define MQTT_PORT 1883
 #define SCAN_TIME  60 // seconds
 #define SLEEP_TIME  0 // seconds
 
@@ -20,14 +20,13 @@
 
 #include <WiFi.h>
 #include <WiFiMulti.h>
-
-#include <HTTPClient.h>
+#include <PubSubClient.h>
 
 #include "soc/soc.h"
 #include "soc/rtc_cntl_reg.h"
 #include "esp_system.h"
 
-//#define SUPPORT_LCD
+#define SUPPORT_LCD
 #ifdef SUPPORT_LCD
 #include <SPI.h>
 #include <Wire.h>
@@ -40,11 +39,13 @@ Adafruit_SSD1306 display(OLED_RESET);
 
 #if (SSD1306_LCDHEIGHT != 32)
 #error("Height incorrect, please fix Adafruit_SSD1306.h!");
-#endif
-#endif
+#endif // (SSD1306_LCDHEIGHT != 32)
+#endif // SUPPORT_LCD
 
 // WiFi & BT Instance
 WiFiMulti wifiMulti;
+WiFiClient espClient;
+PubSubClient client(espClient);
 BLEScan *pBLEScan;
 
 const int loopTimeCtl = 0;
@@ -107,7 +108,7 @@ class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks {
                     Serial.printf("BATTERY_EVENT: %s, %d\n", charValue, value);
 
 #ifdef SUPPORT_LCD
-                    sprintf(eventLog, "BATTERY_EVENT:\n %.1f\n", (float)(value) / 10);
+                    sprintf(eventLog, "BATTERY_EVENT:\n %.1f\n", (float)(value));
                     drawLog(eventLog);
 #endif
                     break;
@@ -126,14 +127,12 @@ class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks {
                     break;
             }
 
-            
-            //  For TCP Socket
-
             int send_retry = 5;
-            WiFiClient client;
+            client.setServer(MQTT_SERVER, MQTT_PORT);
+
             while (--send_retry >= 0) {
-                if (client.connect(POST_URL, POST_PORT)) {
-                    client.print(ss.str().c_str());
+                if (client.connect("ESP32Client")) {
+                    client.publish("esp/kukumi", ss.str().c_str());
                     Serial.println("Send success");
                     break;
                 }
@@ -143,38 +142,8 @@ class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks {
                 }
 
                 Serial.println("Retry to send data...");
-                delay(5000);
+                delay(2000);
             }
-
-/*
-
-            Serial.println("Payload:");
-            Serial.println(ss.str().c_str());
-            // HTTP POST BLE list
-            HTTPClient http;
-
-            // configure traged server and url
-            http.begin(POST_URL);
-
-            // start connection and send HTTP header
-            int httpCode = http.POST(ss.str().c_str());
-
-            // httpCode will be negative on error
-            if (httpCode > 0)
-            {
-                // file found at server
-                if (httpCode == HTTP_CODE_OK)
-                {
-                    Serial.println(http.getString());
-                }
-            }
-            else
-            {
-                Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
-            }
-
-            http.end();
-*/
         }
     }
 };
@@ -258,7 +227,6 @@ void setup()
         Serial.print(".");
         delay(3000);
     }
-
 
     // 30 minutes device reset scheduler
     timer = timerBegin(0, 80, true); //timer 0, div 80

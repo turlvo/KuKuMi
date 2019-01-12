@@ -36,7 +36,7 @@ class XiaomiBTDaemon(Daemon):
         self.data_reporter = Reporter(self.reporting_queue)
         self.data_reporter.setDaemon(True)
 
-        self.bridge_server = Server(self.data_reporter, 39501)
+        self.bridge_server = Server(self.data_reporter, 1883)
         self.bridge_server.setDaemon(True)
 
         Daemon.__init__(self, *args, **kwargs)
