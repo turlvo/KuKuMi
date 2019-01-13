@@ -4,5 +4,7 @@ python xiaomibt-daemon.py stop
 
 echo "Running KuKu Mi Server..."
 cd /root/KuKuMi/django-gentelella
+python manage.py makemigrations
+python manage.py migrate
 python manage.py runserver 0:8484
 
